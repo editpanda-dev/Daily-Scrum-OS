@@ -73,6 +73,17 @@ const sampleState = {
       validation: "팀 운영 시스템은 고객 대상 서비스가 아니라 논문 작성과 연구 협업을 위한 내부 도구로 정의",
     },
   ],
+  meetings: [
+    {
+      id: "meeting-1",
+      date: today,
+      title: "2주차 A/B 테스트 설계 준비 회의",
+      minutes:
+        "DECISION: 행동지표는 CTR, CVR, 구매버튼 클릭으로 쪼개서 본다\nTODO: @지우진 2026-07-05 구매버튼 클릭 이벤트 정의서 작성\nTODO: @최서린 2026-07-06 소비자 신뢰 선행연구 3편 요약\nTODO: @최은서 2026-07-06 Human/AI 광고 자극물 후보 정리",
+      actionsCount: 3,
+      createdAt: today,
+    },
+  ],
   validations: [
     {
       id: "validation-1",
@@ -304,9 +315,11 @@ function render() {
   renderMemberOptions();
   renderMetrics();
   renderTimeline();
+  renderFutureStack();
   renderValidations();
   renderTasks();
   renderScrums();
+  renderMeetings();
   renderPaper();
   renderExperiments();
   renderArchive();
@@ -350,6 +363,48 @@ function renderMetrics() {
   document.getElementById("activeTaskCount").textContent = activeTasks;
 }
 
+function addDays(date, days) {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + days);
+  return nextDate.toISOString().slice(0, 10);
+}
+
+function normalizeOwner(owner) {
+  if (!owner) return "팀 공통";
+  return members.find((member) => member === owner) || "팀 공통";
+}
+
+function parseMeetingActions(minutes, meetingTitle) {
+  return minutes
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => /^(TODO|BLOCKED)\s*:/i.test(line))
+    .map((line) => {
+      const isBlocked = /^BLOCKED\s*:/i.test(line);
+      let body = line.replace(/^(TODO|BLOCKED)\s*:\s*/i, "").trim();
+      const ownerMatch = body.match(/@([^\s]+)/);
+      const dateMatch = body.match(/\b20\d{2}-\d{2}-\d{2}\b/);
+      const owner = normalizeOwner(ownerMatch?.[1]);
+      const dueDate = dateMatch?.[0] || addDays(today, isBlocked ? 1 : 3);
+
+      body = body
+        .replace(/@([^\s]+)/, "")
+        .replace(/\b20\d{2}-\d{2}-\d{2}\b/, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      return {
+        id: createId("task"),
+        title: body || "회의 후속 업무",
+        owner,
+        status: isBlocked ? "blocked" : "todo",
+        dueDate,
+        source: `회의록: ${meetingTitle}`,
+        priority: isBlocked ? "high" : "medium",
+      };
+    });
+}
+
 function renderTimeline() {
   const container = document.getElementById("timelineList");
   const tasks = [...state.tasks]
@@ -378,6 +433,51 @@ function renderTimeline() {
         </article>
       `;
     })
+    .join("");
+}
+
+function renderFutureStack() {
+  const container = document.getElementById("futureStackList");
+  const activeTasks = [...state.tasks]
+    .filter((task) => task.status !== "done")
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+
+  const groups = [
+    ["blocked", "막힌 업무", activeTasks.filter((task) => task.status === "blocked")],
+    ["soon", "이번 주 업무", activeTasks.filter((task) => getDaysLeft(task.dueDate) <= 7 && task.status !== "blocked")],
+    ["later", "이후 업무", activeTasks.filter((task) => getDaysLeft(task.dueDate) > 7 && task.status !== "blocked")],
+  ];
+
+  container.innerHTML = groups
+    .map(
+      ([key, title, tasks]) => `
+        <section class="future-column ${key}">
+          <div class="task-column-header">
+            <span>${title}</span>
+            <span class="badge todo">${tasks.length}</span>
+          </div>
+          ${
+            tasks.length
+              ? tasks
+                  .slice(0, 8)
+                  .map(
+                    (task) => `
+                      <article class="future-item">
+                        <h3>${escapeHtml(task.title)}</h3>
+                        <div class="meta-row">
+                          <span>${escapeHtml(task.owner)}</span>
+                          <span>${escapeHtml(task.dueDate)}</span>
+                          <span>${escapeHtml(task.source)}</span>
+                        </div>
+                      </article>
+                    `,
+                  )
+                  .join("")
+              : '<div class="empty-state compact">쌓인 업무가 없습니다.</div>'
+          }
+        </section>
+      `,
+    )
     .join("");
 }
 
@@ -490,6 +590,24 @@ function renderScrums() {
     .join("");
 }
 
+function renderMeetings() {
+  const container = document.getElementById("meetingHistory");
+  if (!container) return;
+
+  container.innerHTML = (state.meetings || [])
+    .slice(0, 8)
+    .map(
+      (meeting) => `
+        <article class="list-item">
+          <span class="badge progress">${escapeHtml(meeting.date)} · ${escapeHtml(meeting.actionsCount)}개 업무 추출</span>
+          <h3>${escapeHtml(meeting.title)}</h3>
+          <pre class="minutes-preview">${escapeHtml(meeting.minutes)}</pre>
+        </article>
+      `,
+    )
+    .join("");
+}
+
 function renderPaper() {
   const container = document.getElementById("paperList");
   container.innerHTML = state.paperSections
@@ -567,6 +685,9 @@ function bindEvents() {
   document.getElementById("ownerFilter").addEventListener("change", renderTasks);
   document.getElementById("archiveSearch").addEventListener("input", renderArchive);
 
+  const meetingDateInput = document.querySelector('#meetingForm input[name="date"]');
+  if (meetingDateInput && !meetingDateInput.value) meetingDateInput.value = today;
+
   document.getElementById("taskForm").addEventListener("submit", (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -597,6 +718,41 @@ function bindEvents() {
       nextAction: String(form.get("nextAction") || "").trim(),
     });
     event.currentTarget.reset();
+    saveState();
+    render();
+  });
+
+  document.getElementById("meetingForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const title = String(form.get("title") || "").trim();
+    const date = String(form.get("date") || today);
+    const minutes = String(form.get("minutes") || "").trim();
+    const extractedTasks = parseMeetingActions(minutes, title);
+
+    state.meetings = [
+      {
+        id: createId("meeting"),
+        date,
+        title,
+        minutes,
+        actionsCount: extractedTasks.length,
+        createdAt: today,
+      },
+      ...(state.meetings || []),
+    ];
+    state.tasks = [...extractedTasks, ...state.tasks];
+    state.archives.unshift({
+      id: createId("archive"),
+      title,
+      type: "회의록",
+      link: DRIVE_FOLDER_URL,
+      summary: `회의록에서 향후 업무 ${extractedTasks.length}개를 추출했습니다.`,
+      createdAt: date,
+    });
+
+    event.currentTarget.reset();
+    event.currentTarget.querySelector('input[name="date"]').value = today;
     saveState();
     render();
   });
@@ -658,7 +814,7 @@ function bindEvents() {
         id: createId("validation"),
         date: today,
         target: `${member} 스크럼`,
-        hypothesis: "오늘 기록된 고객 반응 또는 실험 메모를 다음 연구 액션으로 연결한다",
+        hypothesis: "오늘 기록된 업무 또는 실험 메모를 다음 연구 액션으로 연결한다",
         insight: validation,
         nextAction: taskTitle || "다음 회의에서 후속 액션 확정",
       });
