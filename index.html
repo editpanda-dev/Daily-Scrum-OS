@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AIM Research Team OS</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">AIM HUFStudy · 논문 작성용 내부 OS</p>
+        <h1>AIM Research Team OS</h1>
+        <p class="subtitle">
+          데일리 스크럼, A/B 테스트 설계, 고객검증, 선행연구, 주간보고서를 한 흐름으로 관리합니다.
+        </p>
+      </div>
+      <div class="header-actions">
+        <div class="sync-box" aria-label="팀 동기화 설정">
+          <span class="sync-dot" id="syncDot"></span>
+          <span id="syncStatus">로컬 준비</span>
+          <input id="passcodeInput" type="password" placeholder="팀 패스코드" autocomplete="current-password" />
+          <button class="ghost-button" id="syncBtn" type="button">팀 DB 동기화</button>
+        </div>
+        <button class="ghost-button" id="exportBtn" type="button">JSON 내보내기</button>
+        <button class="primary-button" id="resetBtn" type="button">샘플 복원</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="summary-grid" aria-label="프로젝트 현황">
+        <article class="metric-card">
+          <span>논문 진행률</span>
+          <strong id="paperProgress">0%</strong>
+          <p>섹션 완료 기준</p>
+        </article>
+        <article class="metric-card accent-green">
+          <span>고객검증</span>
+          <strong id="validationCount">0</strong>
+          <p>인터뷰/실험 로그</p>
+        </article>
+        <article class="metric-card accent-red">
+          <span>블로커</span>
+          <strong id="blockerCount">0</strong>
+          <p>결정 또는 지원 필요</p>
+        </article>
+        <article class="metric-card accent-amber">
+          <span>이번 주 태스크</span>
+          <strong id="activeTaskCount">0</strong>
+          <p>완료 전 업무</p>
+        </article>
+      </section>
+
+      <nav class="tab-list" aria-label="대시보드 탭">
+        <button class="tab-button active" type="button" data-tab="dashboard">대시보드</button>
+        <button class="tab-button" type="button" data-tab="scrum">데일리 스크럼</button>
+        <button class="tab-button" type="button" data-tab="paper">논문 보드</button>
+        <button class="tab-button" type="button" data-tab="experiment">A/B 실험 설계</button>
+        <button class="tab-button" type="button" data-tab="archive">자료 아카이브</button>
+      </nav>
+
+      <section class="tab-panel active" id="dashboard">
+        <div class="two-column">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <h2>타임라인</h2>
+                <p>마감일 기준으로 이번 주 연구 업무를 확인합니다.</p>
+              </div>
+            </div>
+            <div class="timeline" id="timelineList"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <h2>최근 고객검증 인사이트</h2>
+                <p>아이디어가 아니라 실제 반응을 기준으로 다음 액션을 정합니다.</p>
+              </div>
+            </div>
+            <form class="inline-form" id="validationForm">
+              <input name="target" required placeholder="대상: 예비 인터뷰 3명" />
+              <input name="hypothesis" required placeholder="검증 가설" />
+              <textarea name="insight" required rows="2" placeholder="주요 반응/인사이트"></textarea>
+              <input name="nextAction" required placeholder="다음 액션" />
+              <button class="primary-button" type="submit">검증 로그 추가</button>
+            </form>
+            <div class="stack-list" id="recentValidationList"></div>
+          </section>
+        </div>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>태스크 보드</h2>
+              <p>업무를 작게 쪼개 담당자, 상태, 마감일을 함께 봅니다.</p>
+            </div>
+            <select id="ownerFilter" aria-label="담당자 필터"></select>
+          </div>
+          <form class="quick-task-form" id="taskForm">
+            <input name="title" required placeholder="새 태스크: 예: 구매버튼 클릭 이벤트 정의서 작성" />
+            <select name="owner"></select>
+            <select name="priority">
+              <option value="high">높음</option>
+              <option value="medium" selected>보통</option>
+              <option value="low">낮음</option>
+            </select>
+            <input name="dueDate" type="date" />
+            <input name="source" placeholder="출처: 실험설계/문헌조사/회의" />
+            <button class="primary-button" type="submit">태스크 추가</button>
+          </form>
+          <div class="task-board" id="taskBoard"></div>
+        </section>
+      </section>
+
+      <section class="tab-panel" id="scrum">
+        <div class="two-column">
+          <form class="panel form-panel" id="scrumForm">
+            <div class="panel-heading">
+              <div>
+                <h2>오늘의 스크럼 입력</h2>
+                <p>입력 내용은 태스크와 고객검증 로그로 연결됩니다.</p>
+              </div>
+            </div>
+            <div class="form-grid">
+              <label>
+                작성자
+                <select name="member"></select>
+              </label>
+              <label>
+                태스크 마감일
+                <input name="dueDate" type="date" />
+              </label>
+            </div>
+            <label>
+              어제 한 일
+              <textarea name="yesterday" rows="3" placeholder="예: A/B 테스트 설계 사례 2개 조사"></textarea>
+            </label>
+            <label>
+              오늘 할 일
+              <textarea name="today" rows="3" placeholder="예: CTR, CVR, 구매버튼 클릭 측정 방식을 표로 정리"></textarea>
+            </label>
+            <label>
+              막힌 점
+              <textarea name="blocker" rows="2" placeholder="예: 실험 자극물 조건을 더 구체화해야 함"></textarea>
+            </label>
+            <label>
+              고객검증/실험 메모
+              <textarea name="validation" rows="3" placeholder="예: 친구들은 AI 여부보다 광고의 신뢰감과 구매 의향을 먼저 언급함"></textarea>
+            </label>
+            <label>
+              태스크로 만들 작업
+              <input name="taskTitle" placeholder="예: 구매버튼 클릭 이벤트 정의서 작성" />
+            </label>
+            <button class="primary-button" type="submit">스크럼 저장</button>
+          </form>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <h2>스크럼 히스토리</h2>
+                <p>주간보고서와 개인별 기여도 정리에 바로 활용합니다.</p>
+              </div>
+            </div>
+            <div class="stack-list" id="scrumHistory"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="paper">
+        <div class="two-column">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <h2>논문 섹션 보드</h2>
+                <p>서론부터 결론까지 작성 상태와 담당자를 추적합니다.</p>
+              </div>
+            </div>
+            <div class="paper-list" id="paperList"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <h2>주간보고서 연결</h2>
+                <p>보고서 산출물을 논문 근거와 다음 액션으로 연결합니다.</p>
+              </div>
+            </div>
+            <div class="report-card">
+              <span class="badge">1주차 보고서</span>
+              <h3>연구문제 재정의 및 역할 분담</h3>
+              <p>
+                AI-like score가 소비자 신뢰, CTR, CVR, 구매버튼 클릭, ROI 판단에 미치는 영향을
+                검증하는 방향으로 연구문제를 재정의했습니다.
+              </p>
+              <ul>
+                <li>최서린: 문헌·보고서·논문 구조</li>
+                <li>지우진: A/B 테스트 및 행동지표 분석</li>
+                <li>최은서: 광고 이미지·risk band·hold-out set</li>
+              </ul>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="experiment">
+        <div class="two-column">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <h2>A/B 테스트 설계</h2>
+                <p>AI 광고와 인간 제작 광고의 행동지표 차이를 검증합니다.</p>
+              </div>
+            </div>
+            <div class="experiment-grid" id="experimentGrid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <h2>측정 지표 정의</h2>
+                <p>CTR·CVR·구매버튼 클릭을 같은 기준으로 기록합니다.</p>
+              </div>
+            </div>
+            <div class="metric-definition">
+              <h3>CTR</h3>
+              <p>광고 클릭 수 / 광고 노출 수. AI-like score 구간별 클릭 반응 차이를 봅니다.</p>
+              <h3>CVR</h3>
+              <p>전환 수 / 클릭 수. 클릭 이후 구매 의향 또는 신청 행동으로 이어지는지 봅니다.</p>
+              <h3>구매버튼 클릭</h3>
+              <p>상세 페이지 내 구매 CTA 클릭 이벤트. 실제 구매 전 단계의 강한 행동 신호로 기록합니다.</p>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="archive">
+        <div class="two-column">
+          <form class="panel form-panel" id="archiveForm">
+            <div class="panel-heading">
+              <div>
+                <h2>자료 추가</h2>
+                <p>선행연구, 광고 자극물, 실험 설계, 회의록을 한 곳에 모읍니다.</p>
+              </div>
+            </div>
+            <div class="form-grid">
+              <label>
+                자료명
+                <input name="title" required placeholder="예: A/B 테스트 사례 정리표" />
+              </label>
+              <label>
+                유형
+                <select name="type">
+                  <option>주간보고서</option>
+                  <option>선행연구</option>
+                  <option>실험설계</option>
+                  <option>광고자극물</option>
+                  <option>고객검증</option>
+                  <option>회의록</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              링크 또는 파일 위치
+              <input name="link" placeholder="/Users/... 또는 Google Drive 링크" />
+            </label>
+            <label>
+              요약
+              <textarea name="summary" rows="4" placeholder="자료 핵심 내용과 논문에서 쓸 위치"></textarea>
+            </label>
+            <button class="primary-button" type="submit">아카이브 저장</button>
+          </form>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <h2>아카이브</h2>
+                <p>논문 작성과 주간보고서에 재사용할 자료 목록입니다.</p>
+              </div>
+              <input id="archiveSearch" placeholder="자료 검색" />
+            </div>
+            <div class="stack-list" id="archiveList"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
