@@ -54,6 +54,7 @@
 
       <nav class="tab-list" aria-label="대시보드 탭">
         <button class="tab-button active" type="button" data-tab="dashboard">대시보드</button>
+        <button class="tab-button" type="button" data-tab="calendar">캘린더</button>
         <button class="tab-button" type="button" data-tab="scrum">데일리 스크럼</button>
         <button class="tab-button" type="button" data-tab="meetings">회의록</button>
         <button class="tab-button" type="button" data-tab="paper">논문 보드</button>
@@ -122,6 +123,34 @@
             <button class="primary-button" type="submit">태스크 추가</button>
           </form>
           <div class="task-board" id="taskBoard"></div>
+        </section>
+      </section>
+
+      <section class="tab-panel" id="calendar">
+        <section class="panel">
+          <div class="panel-heading calendar-heading">
+            <div>
+              <h2>업무 얼라인 캘린더</h2>
+              <p>진행 중인 업무, 예정 업무, 회의록 일정을 월간 캘린더에서 함께 봅니다.</p>
+            </div>
+            <div class="calendar-controls">
+              <button class="ghost-button" id="calendarPrev" type="button">이전</button>
+              <button class="ghost-button" id="calendarToday" type="button">오늘</button>
+              <button class="ghost-button" id="calendarNext" type="button">다음</button>
+              <select id="calendarOwnerFilter" aria-label="캘린더 담당자 필터"></select>
+            </div>
+          </div>
+          <div class="calendar-title" id="calendarTitle"></div>
+          <div class="calendar-weekdays" aria-hidden="true">
+            <span>일</span>
+            <span>월</span>
+            <span>화</span>
+            <span>수</span>
+            <span>목</span>
+            <span>금</span>
+            <span>토</span>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
         </section>
       </section>
 

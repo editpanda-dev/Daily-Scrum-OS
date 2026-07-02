@@ -185,6 +185,7 @@ const sampleState = {
 let state = readLocalState();
 let cloudEnabled = false;
 let saveTimer = null;
+let calendarCursor = new Date(`${today.slice(0, 7)}-01T00:00:00`);
 
 function readLocalState() {
   const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -316,6 +317,7 @@ function render() {
   renderMetrics();
   renderTimeline();
   renderFutureStack();
+  renderCalendar();
   renderValidations();
   renderTasks();
   renderScrums();
@@ -332,13 +334,13 @@ function renderDriveLinks() {
 }
 
 function renderMemberOptions() {
-  document.querySelectorAll('select[name="member"], select[name="owner"], #ownerFilter').forEach((select) => {
+  document.querySelectorAll('select[name="member"], select[name="owner"], #ownerFilter, #calendarOwnerFilter').forEach((select) => {
     const current = select.value;
-    const leading = select.id === "ownerFilter" ? '<option value="all">전체 담당자</option>' : "";
+    const leading = select.id === "ownerFilter" || select.id === "calendarOwnerFilter" ? '<option value="all">전체 담당자</option>' : "";
     select.innerHTML =
       leading +
       members.map((member) => `<option value="${escapeHtml(member)}">${escapeHtml(member)}</option>`).join("");
-    select.value = current || (select.id === "ownerFilter" ? "all" : members[0]);
+    select.value = current || (select.id === "ownerFilter" || select.id === "calendarOwnerFilter" ? "all" : members[0]);
   });
 
   const dueDateInput = document.querySelector('input[name="dueDate"]');
@@ -479,6 +481,81 @@ function renderFutureStack() {
       `,
     )
     .join("");
+}
+
+function getCalendarEvents() {
+  const ownerFilter = document.getElementById("calendarOwnerFilter")?.value || "all";
+  const taskEvents = state.tasks
+    .filter((task) => task.dueDate && task.status !== "done")
+    .filter((task) => ownerFilter === "all" || task.owner === ownerFilter)
+    .map((task) => ({
+      date: task.dueDate,
+      title: task.title,
+      owner: task.owner,
+      type: task.status === "blocked" ? "blocked" : "task",
+      status: task.status,
+    }));
+
+  const meetingEvents = (state.meetings || []).map((meeting) => ({
+    date: meeting.date,
+    title: meeting.title,
+    owner: "팀 공통",
+    type: "meeting",
+    status: "meeting",
+  }));
+
+  return [...taskEvents, ...meetingEvents];
+}
+
+function renderCalendar() {
+  const grid = document.getElementById("calendarGrid");
+  const title = document.getElementById("calendarTitle");
+  if (!grid || !title) return;
+
+  const year = calendarCursor.getFullYear();
+  const month = calendarCursor.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const startDate = new Date(year, month, 1 - firstDay.getDay());
+  const monthLabel = `${year}년 ${String(month + 1).padStart(2, "0")}월`;
+  const events = getCalendarEvents();
+
+  title.textContent = monthLabel;
+  const cells = [];
+
+  for (let index = 0; index < 42; index += 1) {
+    const cellDate = new Date(startDate);
+    cellDate.setDate(startDate.getDate() + index);
+    const dateKey = cellDate.toISOString().slice(0, 10);
+    const dayEvents = events.filter((event) => event.date === dateKey);
+    const isCurrentMonth = cellDate.getMonth() === month;
+    const isToday = dateKey === today;
+
+    cells.push(`
+      <article class="calendar-cell ${isCurrentMonth ? "" : "muted"} ${isToday ? "today" : ""}">
+        <div class="calendar-date">
+          <span>${cellDate.getDate()}</span>
+          ${isToday ? '<strong>오늘</strong>' : ""}
+        </div>
+        <div class="calendar-events">
+          ${dayEvents
+            .slice(0, 4)
+            .map(
+              (event) => `
+                <div class="calendar-event ${event.type}">
+                  <span>${event.type === "meeting" ? "회의" : statusLabel(event.status)}</span>
+                  <p>${escapeHtml(event.title)}</p>
+                  <small>${escapeHtml(event.owner)}</small>
+                </div>
+              `,
+            )
+            .join("")}
+          ${dayEvents.length > 4 ? `<div class="calendar-more">+${dayEvents.length - 4}개 더 있음</div>` : ""}
+        </div>
+      </article>
+    `);
+  }
+
+  grid.innerHTML = cells.join("");
 }
 
 function renderValidations() {
@@ -684,6 +761,19 @@ function bindEvents() {
 
   document.getElementById("ownerFilter").addEventListener("change", renderTasks);
   document.getElementById("archiveSearch").addEventListener("input", renderArchive);
+  document.getElementById("calendarOwnerFilter").addEventListener("change", renderCalendar);
+  document.getElementById("calendarPrev").addEventListener("click", () => {
+    calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() - 1, 1);
+    renderCalendar();
+  });
+  document.getElementById("calendarNext").addEventListener("click", () => {
+    calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + 1, 1);
+    renderCalendar();
+  });
+  document.getElementById("calendarToday").addEventListener("click", () => {
+    calendarCursor = new Date(`${today.slice(0, 7)}-01T00:00:00`);
+    renderCalendar();
+  });
 
   const meetingDateInput = document.querySelector('#meetingForm input[name="date"]');
   if (meetingDateInput && !meetingDateInput.value) meetingDateInput.value = today;
