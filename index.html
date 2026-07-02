@@ -106,7 +106,7 @@
           <div class="panel-heading">
             <div>
               <h2>태스크 보드</h2>
-              <p>업무를 작게 쪼개 담당자, 상태, 마감일을 함께 봅니다.</p>
+              <p>업무를 작게 쪼개 담당자, 상태, 기간을 함께 봅니다.</p>
             </div>
             <select id="ownerFilter" aria-label="담당자 필터"></select>
           </div>
@@ -118,7 +118,8 @@
               <option value="medium" selected>보통</option>
               <option value="low">낮음</option>
             </select>
-            <input name="dueDate" type="date" />
+            <input name="startDate" type="date" aria-label="시작일" />
+            <input name="dueDate" type="date" aria-label="마감일" />
             <input name="source" placeholder="출처: 실험설계/문헌조사/회의" />
             <button class="primary-button" type="submit">태스크 추가</button>
           </form>
@@ -167,6 +168,10 @@
               <label>
                 작성자
                 <select name="member"></select>
+              </label>
+              <label>
+                태스크 시작일
+                <input name="startDate" type="date" />
               </label>
               <label>
                 태스크 마감일
@@ -235,14 +240,14 @@
                 required
                 placeholder="예:
 DECISION: A/B 테스트는 CTR, CVR, 구매버튼 클릭을 모두 기록한다
-TODO: @지우진 2026-07-05 구매버튼 클릭 이벤트 정의서 작성
+TODO: @지우진 2026-07-05~2026-07-10 구매버튼 클릭 이벤트 정의서 작성
 TODO: @최서린 2026-07-06 소비자 신뢰 선행연구 3편 요약
 BLOCKED: @최은서 광고 자극물 출처 확인 필요"
               ></textarea>
             </label>
             <div class="helper-box">
               <strong>자동 태스크 규칙</strong>
-              <p><code>TODO: @담당자 YYYY-MM-DD 업무내용</code> 또는 <code>BLOCKED: @담당자 업무내용</code> 형식으로 쓰면 태스크 보드와 향후 업무 스택에 자동 추가됩니다.</p>
+              <p><code>TODO: @담당자 YYYY-MM-DD~YYYY-MM-DD 업무내용</code> 또는 <code>BLOCKED: @담당자 업무내용</code> 형식으로 쓰면 태스크 보드와 향후 업무 스택에 자동 추가됩니다.</p>
             </div>
             <button class="primary-button" type="submit">회의록 저장 및 업무 추출</button>
           </form>

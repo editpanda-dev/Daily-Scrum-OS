@@ -2,7 +2,7 @@ const STORAGE_KEY = "aim_research_team_os_v1";
 const PASSCODE_KEY = "aim_research_team_os_passcode";
 const API_ENDPOINT = "/api/state";
 const DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1FcPQHlpGc736etJQKGEEhqWpasH56tun?usp=drive_link";
-const today = new Date().toISOString().slice(0, 10);
+const today = formatDateKey(new Date());
 
 const members = ["지우진", "최서린", "최은서", "팀 공통"];
 
@@ -21,6 +21,7 @@ const sampleState = {
       title: "A/B 테스트 설계 사례와 CTR·CVR·구매버튼 클릭 측정 방식 정리",
       owner: "지우진",
       status: "progress",
+      startDate: "2026-06-28",
       dueDate: "2026-06-30",
       source: "1주차 다음 액션",
       priority: "high",
@@ -30,6 +31,7 @@ const sampleState = {
       title: "생성형 AI 광고 인식·소비자 신뢰 선행연구 3편 이상 요약",
       owner: "최서린",
       status: "todo",
+      startDate: "2026-06-29",
       dueDate: "2026-06-30",
       source: "문헌조사",
       priority: "high",
@@ -39,6 +41,7 @@ const sampleState = {
       title: "Human/AI 광고 자극물 후보와 AI-like risk band 자료 수집",
       owner: "최은서",
       status: "todo",
+      startDate: "2026-06-29",
       dueDate: "2026-06-30",
       source: "광고자극물",
       priority: "medium",
@@ -48,6 +51,7 @@ const sampleState = {
       title: "데일리 스크럼 기반 업무 공유 및 자료 아카이빙 워크플로우 구축",
       owner: "지우진",
       status: "review",
+      startDate: today,
       dueDate: today,
       source: "개인 목표",
       priority: "high",
@@ -57,6 +61,7 @@ const sampleState = {
       title: "2주차 회의에서 문헌 요약 공유 후 연구문제별 참고문헌 목록 확정",
       owner: "팀 공통",
       status: "todo",
+      startDate: "2026-06-30",
       dueDate: "2026-07-01",
       source: "주간보고서",
       priority: "medium",
@@ -79,7 +84,7 @@ const sampleState = {
       date: today,
       title: "2주차 A/B 테스트 설계 준비 회의",
       minutes:
-        "DECISION: 행동지표는 CTR, CVR, 구매버튼 클릭으로 쪼개서 본다\nTODO: @지우진 2026-07-05 구매버튼 클릭 이벤트 정의서 작성\nTODO: @최서린 2026-07-06 소비자 신뢰 선행연구 3편 요약\nTODO: @최은서 2026-07-06 Human/AI 광고 자극물 후보 정리",
+        "DECISION: 행동지표는 CTR, CVR, 구매버튼 클릭으로 쪼개서 본다\nTODO: @지우진 2026-07-05~2026-07-10 구매버튼 클릭 이벤트 정의서 작성\nTODO: @최서린 2026-07-06~2026-07-08 소비자 신뢰 선행연구 3편 요약\nTODO: @최은서 2026-07-06 Human/AI 광고 자극물 후보 정리",
       actionsCount: 3,
       createdAt: today,
     },
@@ -303,8 +308,51 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function parseDateKey(date) {
+  const [year, month, day] = String(date || today)
+    .split("-")
+    .map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatDateKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
 function getDaysLeft(date) {
-  return Math.ceil((new Date(date).getTime() - new Date(today).getTime()) / 86400000);
+  return Math.ceil((parseDateKey(date).getTime() - parseDateKey(today).getTime()) / 86400000);
+}
+
+function getTaskDateRange(task) {
+  const firstDate = task.startDate || task.dueDate || today;
+  const lastDate = task.dueDate || task.startDate || today;
+  return firstDate <= lastDate ? [firstDate, lastDate] : [lastDate, firstDate];
+}
+
+function getTaskStartDate(task) {
+  return getTaskDateRange(task)[0];
+}
+
+function getTaskEndDate(task) {
+  return getTaskDateRange(task)[1];
+}
+
+function getTaskRangeLabel(task) {
+  const [startDate, endDate] = getTaskDateRange(task);
+  return startDate === endDate ? endDate : `${startDate}~${endDate}`;
+}
+
+function getDateRange(startDate, endDate) {
+  const dates = [];
+  const cursor = parseDateKey(startDate);
+  const end = parseDateKey(endDate);
+
+  for (let index = 0; cursor <= end && index < 120; index += 1) {
+    dates.push(formatDateKey(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return dates;
 }
 
 function statusLabel(status) {
@@ -343,10 +391,7 @@ function renderMemberOptions() {
     select.value = current || (select.id === "ownerFilter" || select.id === "calendarOwnerFilter" ? "all" : members[0]);
   });
 
-  const dueDateInput = document.querySelector('input[name="dueDate"]');
-  if (dueDateInput && !dueDateInput.value) dueDateInput.value = today;
-
-  document.querySelectorAll('input[name="dueDate"]').forEach((input) => {
+  document.querySelectorAll('input[name="startDate"], input[name="dueDate"]').forEach((input) => {
     if (!input.value) input.value = today;
   });
 }
@@ -366,9 +411,9 @@ function renderMetrics() {
 }
 
 function addDays(date, days) {
-  const nextDate = new Date(date);
+  const nextDate = parseDateKey(date);
   nextDate.setDate(nextDate.getDate() + days);
-  return nextDate.toISOString().slice(0, 10);
+  return formatDateKey(nextDate);
 }
 
 function normalizeOwner(owner) {
@@ -385,13 +430,16 @@ function parseMeetingActions(minutes, meetingTitle) {
       const isBlocked = /^BLOCKED\s*:/i.test(line);
       let body = line.replace(/^(TODO|BLOCKED)\s*:\s*/i, "").trim();
       const ownerMatch = body.match(/@([^\s]+)/);
+      const rangeMatch = body.match(/\b(20\d{2}-\d{2}-\d{2})\s*(?:~|–|—|\s-\s|to|부터|에서)\s*(20\d{2}-\d{2}-\d{2})\b/i);
       const dateMatch = body.match(/\b20\d{2}-\d{2}-\d{2}\b/);
       const owner = normalizeOwner(ownerMatch?.[1]);
-      const dueDate = dateMatch?.[0] || addDays(today, isBlocked ? 1 : 3);
+      const startDate = rangeMatch?.[1] || dateMatch?.[0] || today;
+      const dueDate = rangeMatch?.[2] || dateMatch?.[0] || addDays(today, isBlocked ? 1 : 3);
+      const [normalizedStartDate, normalizedDueDate] = getTaskDateRange({ startDate, dueDate });
 
       body = body
         .replace(/@([^\s]+)/, "")
-        .replace(/\b20\d{2}-\d{2}-\d{2}\b/, "")
+        .replace(rangeMatch?.[0] || dateMatch?.[0] || "", "")
         .replace(/\s+/g, " ")
         .trim();
 
@@ -400,7 +448,8 @@ function parseMeetingActions(minutes, meetingTitle) {
         title: body || "회의 후속 업무",
         owner,
         status: isBlocked ? "blocked" : "todo",
-        dueDate,
+        startDate: normalizedStartDate,
+        dueDate: normalizedDueDate,
         source: `회의록: ${meetingTitle}`,
         priority: isBlocked ? "high" : "medium",
       };
@@ -411,12 +460,12 @@ function renderTimeline() {
   const container = document.getElementById("timelineList");
   const tasks = [...state.tasks]
     .filter((task) => task.status !== "done")
-    .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+    .sort((a, b) => getTaskEndDate(a).localeCompare(getTaskEndDate(b)))
     .slice(0, 6);
 
   container.innerHTML = tasks
     .map((task) => {
-      const days = getDaysLeft(task.dueDate);
+      const days = getDaysLeft(getTaskEndDate(task));
       const width = Math.max(12, Math.min(100, 100 - Math.max(days, 0) * 10));
       const dueText = days < 0 ? `${Math.abs(days)}일 지연` : days === 0 ? "오늘 마감" : `${days}일 남음`;
       return `
@@ -428,7 +477,7 @@ function renderTimeline() {
           <div class="meta-row">
             <span>${escapeHtml(task.owner)}</span>
             <span>${escapeHtml(task.source)}</span>
-            <span>${escapeHtml(task.dueDate)}</span>
+            <span>${escapeHtml(getTaskRangeLabel(task))}</span>
           </div>
           <div class="progress-track"><div class="progress-bar" style="width:${width}%"></div></div>
           <p class="meta-row" style="margin:8px 0 0">${dueText}</p>
@@ -442,12 +491,12 @@ function renderFutureStack() {
   const container = document.getElementById("futureStackList");
   const activeTasks = [...state.tasks]
     .filter((task) => task.status !== "done")
-    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+    .sort((a, b) => getTaskEndDate(a).localeCompare(getTaskEndDate(b)));
 
   const groups = [
     ["blocked", "막힌 업무", activeTasks.filter((task) => task.status === "blocked")],
-    ["soon", "이번 주 업무", activeTasks.filter((task) => getDaysLeft(task.dueDate) <= 7 && task.status !== "blocked")],
-    ["later", "이후 업무", activeTasks.filter((task) => getDaysLeft(task.dueDate) > 7 && task.status !== "blocked")],
+    ["soon", "이번 주 업무", activeTasks.filter((task) => getDaysLeft(getTaskEndDate(task)) <= 7 && task.status !== "blocked")],
+    ["later", "이후 업무", activeTasks.filter((task) => getDaysLeft(getTaskEndDate(task)) > 7 && task.status !== "blocked")],
   ];
 
   container.innerHTML = groups
@@ -468,7 +517,7 @@ function renderFutureStack() {
                         <h3>${escapeHtml(task.title)}</h3>
                         <div class="meta-row">
                           <span>${escapeHtml(task.owner)}</span>
-                          <span>${escapeHtml(task.dueDate)}</span>
+                          <span>${escapeHtml(getTaskRangeLabel(task))}</span>
                           <span>${escapeHtml(task.source)}</span>
                         </div>
                       </article>
@@ -486,15 +535,21 @@ function renderFutureStack() {
 function getCalendarEvents() {
   const ownerFilter = document.getElementById("calendarOwnerFilter")?.value || "all";
   const taskEvents = state.tasks
-    .filter((task) => task.dueDate && task.status !== "done")
+    .filter((task) => (task.startDate || task.dueDate) && task.status !== "done")
     .filter((task) => ownerFilter === "all" || task.owner === ownerFilter)
-    .map((task) => ({
-      date: task.dueDate,
-      title: task.title,
-      owner: task.owner,
-      type: task.status === "blocked" ? "blocked" : "task",
-      status: task.status,
-    }));
+    .flatMap((task) => {
+      const [startDate, endDate] = getTaskDateRange(task);
+      return getDateRange(startDate, endDate).map((date) => ({
+        date,
+        title: task.title,
+        owner: task.owner,
+        type: task.status === "blocked" ? "blocked" : "task",
+        status: task.status,
+        rangeLabel: getTaskRangeLabel(task),
+        isStart: date === startDate,
+        isEnd: date === endDate,
+      }));
+    });
 
   const meetingEvents = (state.meetings || []).map((meeting) => ({
     date: meeting.date,
@@ -525,7 +580,7 @@ function renderCalendar() {
   for (let index = 0; index < 42; index += 1) {
     const cellDate = new Date(startDate);
     cellDate.setDate(startDate.getDate() + index);
-    const dateKey = cellDate.toISOString().slice(0, 10);
+    const dateKey = formatDateKey(cellDate);
     const dayEvents = events.filter((event) => event.date === dateKey);
     const isCurrentMonth = cellDate.getMonth() === month;
     const isToday = dateKey === today;
@@ -541,10 +596,10 @@ function renderCalendar() {
             .slice(0, 4)
             .map(
               (event) => `
-                <div class="calendar-event ${event.type}">
-                  <span>${event.type === "meeting" ? "회의" : statusLabel(event.status)}</span>
+                <div class="calendar-event ${event.type} ${event.isStart ? "range-start" : ""} ${event.isEnd ? "range-end" : ""}">
+                  <span>${event.type === "meeting" ? "회의" : event.isStart ? `시작 · ${statusLabel(event.status)}` : event.isEnd ? `마감 · ${statusLabel(event.status)}` : `진행 · ${statusLabel(event.status)}`}</span>
                   <p>${escapeHtml(event.title)}</p>
-                  <small>${escapeHtml(event.owner)}</small>
+                  <small>${escapeHtml(event.rangeLabel ? `${event.owner} · ${event.rangeLabel}` : event.owner)}</small>
                 </div>
               `,
             )
@@ -565,7 +620,7 @@ function renderValidations() {
     .map((member) => {
       const owned = state.tasks
         .filter((task) => task.owner === member && task.status !== "done")
-        .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+        .sort((a, b) => getTaskEndDate(a).localeCompare(getTaskEndDate(b)));
       const current = owned.find((task) => task.status === "progress" || task.status === "review") || owned[0];
       const next = owned.find((task) => task.id !== current?.id && task.status === "todo");
       const blocked = owned.find((task) => task.status === "blocked");
@@ -629,7 +684,7 @@ function renderTasks() {
                   <div class="meta-row">
                     <span>${escapeHtml(task.owner)}</span>
                     <span>${escapeHtml(task.source)}</span>
-                    <span>${escapeHtml(task.dueDate)}</span>
+                    <span>${escapeHtml(getTaskRangeLabel(task))}</span>
                   </div>
                   <select data-task-status="${escapeHtml(task.id)}" aria-label="태스크 상태 변경">
                     ${statuses
@@ -781,16 +836,21 @@ function bindEvents() {
   document.getElementById("taskForm").addEventListener("submit", (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const startDate = String(form.get("startDate") || form.get("dueDate") || today);
+    const dueDate = String(form.get("dueDate") || startDate);
+    const [normalizedStartDate, normalizedDueDate] = getTaskDateRange({ startDate, dueDate });
     state.tasks.unshift({
       id: createId("task"),
       title: String(form.get("title") || "").trim(),
       owner: String(form.get("owner") || members[0]),
       status: "todo",
-      dueDate: String(form.get("dueDate") || today),
+      startDate: normalizedStartDate,
+      dueDate: normalizedDueDate,
       source: String(form.get("source") || "직접 추가").trim() || "직접 추가",
       priority: String(form.get("priority") || "medium"),
     });
     event.currentTarget.reset();
+    event.currentTarget.querySelector('input[name="startDate"]').value = today;
     event.currentTarget.querySelector('input[name="dueDate"]').value = today;
     saveState();
     render();
@@ -888,12 +948,16 @@ function bindEvents() {
     });
 
     if (taskTitle) {
+      const startDate = String(form.get("startDate") || form.get("dueDate") || today);
+      const dueDate = String(form.get("dueDate") || startDate);
+      const [normalizedStartDate, normalizedDueDate] = getTaskDateRange({ startDate, dueDate });
       state.tasks.unshift({
         id: createId("task"),
         title: taskTitle,
         owner: member,
         status: blocker ? "blocked" : "todo",
-        dueDate: String(form.get("dueDate") || today),
+        startDate: normalizedStartDate,
+        dueDate: normalizedDueDate,
         source: "데일리 스크럼",
         priority: blocker ? "high" : "medium",
       });
@@ -911,6 +975,7 @@ function bindEvents() {
     }
 
     event.currentTarget.reset();
+    event.currentTarget.querySelector('input[name="startDate"]').value = today;
     event.currentTarget.querySelector('input[name="dueDate"]').value = today;
     saveState();
     render();

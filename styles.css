@@ -343,7 +343,7 @@ label {
 }
 
 .quick-task-form {
-  grid-template-columns: minmax(260px, 1.5fr) 130px 110px 140px minmax(180px, 1fr) 110px;
+  grid-template-columns: minmax(240px, 1.4fr) 120px 100px 130px 130px minmax(160px, 1fr) 110px;
 }
 
 .quick-task-form input,
@@ -447,9 +447,21 @@ label {
   padding: 7px;
 }
 
+.calendar-event.range-start {
+  box-shadow: inset 0 1px 0 rgba(37, 99, 235, 0.18);
+}
+
+.calendar-event.range-end {
+  border-right: 3px solid rgba(37, 99, 235, 0.35);
+}
+
 .calendar-event.blocked {
   border-left-color: var(--red);
   background: #fef2f2;
+}
+
+.calendar-event.blocked.range-end {
+  border-right-color: rgba(220, 38, 38, 0.35);
 }
 
 .calendar-event.meeting {
