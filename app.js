@@ -84,7 +84,7 @@ const sampleState = {
       date: today,
       title: "2주차 A/B 테스트 설계 준비 회의",
       minutes:
-        "DECISION: 행동지표는 CTR, CVR, 구매버튼 클릭으로 쪼개서 본다\nTODO: @지우진 2026-07-05~2026-07-10 구매버튼 클릭 이벤트 정의서 작성\nTODO: @최서린 2026-07-06~2026-07-08 소비자 신뢰 선행연구 3편 요약\nTODO: @최은서 2026-07-06 Human/AI 광고 자극물 후보 정리",
+        "AGENDA: A/B 테스트 행동지표 확정\n지우진: 행동지표는 CTR, CVR, 구매버튼 클릭으로 쪼개서 본다\nDECISION: 행동지표는 CTR, CVR, 구매버튼 클릭으로 쪼개서 본다\nTODO: @지우진 2026-07-05~2026-07-10 구매버튼 클릭 이벤트 정의서 작성\nTODO: @최서린 2026-07-06~2026-07-08 소비자 신뢰 선행연구 3편 요약\nTODO: @최은서 2026-07-06 Human/AI 광고 자극물 후보 정리",
       actionsCount: 3,
       createdAt: today,
     },
@@ -359,6 +359,23 @@ function statusLabel(status) {
   return statuses.find(([key]) => key === status)?.[1] || status;
 }
 
+function getMinutesTextarea() {
+  return document.querySelector('#meetingForm textarea[name="minutes"]');
+}
+
+function appendMinutesLine(line, shouldKeepCursor = false) {
+  const textarea = getMinutesTextarea();
+  if (!textarea || !line) return;
+  const prefix = textarea.value.trim() ? "\n" : "";
+  textarea.value = `${textarea.value}${prefix}${line}`;
+  textarea.focus();
+
+  if (shouldKeepCursor) {
+    textarea.selectionStart = textarea.value.length;
+    textarea.selectionEnd = textarea.value.length;
+  }
+}
+
 function render() {
   renderDriveLinks();
   renderMemberOptions();
@@ -382,16 +399,20 @@ function renderDriveLinks() {
 }
 
 function renderMemberOptions() {
-  document.querySelectorAll('select[name="member"], select[name="owner"], #ownerFilter, #calendarOwnerFilter').forEach((select) => {
-    const current = select.value;
-    const leading = select.id === "ownerFilter" || select.id === "calendarOwnerFilter" ? '<option value="all">전체 담당자</option>' : "";
-    select.innerHTML =
-      leading +
-      members.map((member) => `<option value="${escapeHtml(member)}">${escapeHtml(member)}</option>`).join("");
-    select.value = current || (select.id === "ownerFilter" || select.id === "calendarOwnerFilter" ? "all" : members[0]);
-  });
+  document
+    .querySelectorAll(
+      'select[name="member"], select[name="owner"], #ownerFilter, #calendarOwnerFilter, #speakerSelect, #actionOwnerSelect',
+    )
+    .forEach((select) => {
+      const current = select.value;
+      const leading = select.id === "ownerFilter" || select.id === "calendarOwnerFilter" ? '<option value="all">전체 담당자</option>' : "";
+      select.innerHTML =
+        leading +
+        members.map((member) => `<option value="${escapeHtml(member)}">${escapeHtml(member)}</option>`).join("");
+      select.value = current || (select.id === "ownerFilter" || select.id === "calendarOwnerFilter" ? "all" : members[0]);
+    });
 
-  document.querySelectorAll('input[name="startDate"], input[name="dueDate"]').forEach((input) => {
+  document.querySelectorAll('input[type="date"]').forEach((input) => {
     if (!input.value) input.value = today;
   });
 }
@@ -832,6 +853,39 @@ function bindEvents() {
 
   const meetingDateInput = document.querySelector('#meetingForm input[name="date"]');
   if (meetingDateInput && !meetingDateInput.value) meetingDateInput.value = today;
+
+  document.getElementById("addAgendaBtn").addEventListener("click", () => {
+    const input = document.getElementById("agendaInput");
+    const agenda = input.value.trim();
+    if (!agenda) return;
+
+    appendMinutesLine(`AGENDA: ${agenda}`);
+    input.value = "";
+  });
+
+  document.getElementById("addSpeakerBtn").addEventListener("click", () => {
+    const customInput = document.getElementById("customSpeakerInput");
+    const selectedName = document.getElementById("speakerSelect").value;
+    const speaker = customInput.value.trim() || selectedName;
+    if (!speaker) return;
+
+    appendMinutesLine(`${speaker}: `, true);
+    customInput.value = "";
+  });
+
+  document.getElementById("addActionBtn").addEventListener("click", () => {
+    const actionInput = document.getElementById("actionTitleInput");
+    const type = document.getElementById("actionTypeSelect").value || "TODO";
+    const owner = document.getElementById("actionOwnerSelect").value || members[0];
+    const startDate = document.getElementById("actionStartDate").value || today;
+    const dueDate = document.getElementById("actionDueDate").value || startDate;
+    const [normalizedStartDate, normalizedDueDate] = getTaskDateRange({ startDate, dueDate });
+    const title = actionInput.value.trim();
+    if (!title) return;
+
+    appendMinutesLine(`${type}: @${owner} ${normalizedStartDate}~${normalizedDueDate} ${title}`);
+    actionInput.value = "";
+  });
 
   document.getElementById("taskForm").addEventListener("submit", (event) => {
     event.preventDefault();

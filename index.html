@@ -232,13 +232,69 @@
                 <input name="date" type="date" />
               </label>
             </div>
+
+            <section class="meeting-builder" aria-label="회의록 빌더">
+              <div class="builder-row">
+                <label>
+                  안건
+                  <input id="agendaInput" type="text" placeholder="예: A/B 테스트 행동지표 확정" />
+                </label>
+                <button class="ghost-button" id="addAgendaBtn" type="button">안건 추가</button>
+              </div>
+
+              <div class="builder-row speaker-row">
+                <label>
+                  발언자
+                  <select id="speakerSelect" aria-label="발언자 선택"></select>
+                </label>
+                <label>
+                  직접 입력
+                  <input id="customSpeakerInput" type="text" placeholder="예: 외부 멘토" />
+                </label>
+                <button class="ghost-button" id="addSpeakerBtn" type="button">응답자 추가</button>
+              </div>
+
+              <div class="action-builder">
+                <div class="form-grid">
+                  <label>
+                    담당자
+                    <select id="actionOwnerSelect" aria-label="액션아이템 담당자"></select>
+                  </label>
+                  <label>
+                    상태
+                    <select id="actionTypeSelect" aria-label="액션아이템 상태">
+                      <option value="TODO">TODO</option>
+                      <option value="BLOCKED">BLOCKED</option>
+                    </select>
+                  </label>
+                  <label>
+                    시작일
+                    <input id="actionStartDate" type="date" />
+                  </label>
+                  <label>
+                    종료일
+                    <input id="actionDueDate" type="date" />
+                  </label>
+                </div>
+                <div class="builder-row">
+                  <label>
+                    업무내용
+                    <input id="actionTitleInput" type="text" placeholder="예: 구매버튼 클릭 이벤트 정의서 작성" />
+                  </label>
+                  <button class="primary-button" id="addActionBtn" type="button">액션아이템 추가</button>
+                </div>
+              </div>
+            </section>
+
             <label>
-              회의록
+              회의록 본문
               <textarea
                 name="minutes"
                 rows="12"
                 required
                 placeholder="예:
+AGENDA: A/B 테스트 행동지표 확정
+지우진: 구매버튼 클릭은 상세 페이지 CTA 클릭으로 별도 측정하는 것이 좋음
 DECISION: A/B 테스트는 CTR, CVR, 구매버튼 클릭을 모두 기록한다
 TODO: @지우진 2026-07-05~2026-07-10 구매버튼 클릭 이벤트 정의서 작성
 TODO: @최서린 2026-07-06 소비자 신뢰 선행연구 3편 요약

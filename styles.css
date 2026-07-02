@@ -361,6 +361,45 @@ label {
   gap: 14px;
 }
 
+.meeting-builder {
+  display: grid;
+  gap: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 12px;
+}
+
+.builder-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.speaker-row {
+  grid-template-columns: minmax(120px, 0.6fr) minmax(0, 1fr) auto;
+}
+
+.builder-row .ghost-button,
+.builder-row .primary-button {
+  min-height: 38px;
+  white-space: nowrap;
+}
+
+.builder-row input,
+.meeting-builder select,
+.meeting-builder input {
+  min-height: 38px;
+}
+
+.action-builder {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+}
+
 .timeline,
 .stack-list,
 .paper-list,
@@ -793,7 +832,9 @@ code {
 
   .summary-grid,
   .form-grid,
-  .quick-task-form {
+  .quick-task-form,
+  .builder-row,
+  .speaker-row {
     grid-template-columns: 1fr;
   }
 
