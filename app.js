@@ -1,6 +1,7 @@
 const STORAGE_KEY = "aim_research_team_os_v1";
 const PASSCODE_KEY = "aim_research_team_os_passcode";
 const API_ENDPOINT = "/api/state";
+const DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1FcPQHlpGc736etJQKGEEhqWpasH56tun?usp=drive_link";
 const today = new Date().toISOString().slice(0, 10);
 
 const members = ["지우진", "최서린", "최은서", "팀 공통"];
@@ -76,10 +77,10 @@ const sampleState = {
     {
       id: "validation-1",
       date: today,
-      target: "친구/부모님 예비 반응",
-      hypothesis: "AI 광고와 인간 광고를 구분하기 어려워하는 사용자가 많다",
-      insight: "AI 여부보다 광고가 신뢰 가능한지, 구매하고 싶은지에 대한 반응을 먼저 확인해야 한다",
-      nextAction: "A/B 테스트에서 클릭, 구매버튼 클릭, 신뢰도 설문을 함께 측정",
+      target: "A/B 테스트 지표 정리",
+      hypothesis: "현재 상태: CTR·CVR·구매버튼 클릭 정의 초안 작성 중",
+      insight: "광고 노출, 클릭, 상세 진입, CTA 클릭을 아주 작은 이벤트 단위로 쪼개야 함",
+      nextAction: "지우진이 지표 정의표 작성 후 팀원 리뷰 요청",
     },
   ],
   archives: [
@@ -87,7 +88,7 @@ const sampleState = {
       id: "archive-week1",
       title: "1주차 AIM HUFStudy 주간학습보고서",
       type: "주간보고서",
-      link: "/Users/woojin/Desktop/1주차_AIM_HUFStudy_주간학습보고서_사진첨부.pdf",
+      link: DRIVE_FOLDER_URL,
       summary:
         "연구문제를 AI-like score가 소비자 신뢰, 행동 반응, ROI 판단에 미치는 영향 검증으로 재정의하고 역할을 분담한 1주차 산출물.",
       createdAt: today,
@@ -299,6 +300,7 @@ function statusLabel(status) {
 }
 
 function render() {
+  renderDriveLinks();
   renderMemberOptions();
   renderMetrics();
   renderTimeline();
@@ -308,6 +310,12 @@ function render() {
   renderPaper();
   renderExperiments();
   renderArchive();
+}
+
+function renderDriveLinks() {
+  document.querySelectorAll("#driveHeaderLink, #driveArchiveLink").forEach((link) => {
+    link.href = DRIVE_FOLDER_URL;
+  });
 }
 
 function renderMemberOptions() {
@@ -337,7 +345,7 @@ function renderMetrics() {
   const blockers = state.tasks.filter((task) => task.status === "blocked").length;
 
   document.getElementById("paperProgress").textContent = `${progress}%`;
-  document.getElementById("validationCount").textContent = state.validations.length;
+  document.getElementById("validationCount").textContent = state.archives.length;
   document.getElementById("blockerCount").textContent = blockers;
   document.getElementById("activeTaskCount").textContent = activeTasks;
 }
@@ -375,20 +383,48 @@ function renderTimeline() {
 
 function renderValidations() {
   const container = document.getElementById("recentValidationList");
-  container.innerHTML = state.validations
-    .slice(0, 5)
+  const workload = members
+    .filter((member) => member !== "팀 공통")
+    .map((member) => {
+      const owned = state.tasks
+        .filter((task) => task.owner === member && task.status !== "done")
+        .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+      const current = owned.find((task) => task.status === "progress" || task.status === "review") || owned[0];
+      const next = owned.find((task) => task.id !== current?.id && task.status === "todo");
+      const blocked = owned.find((task) => task.status === "blocked");
+      return `
+        <article class="workload-card">
+          <div class="paper-topline">
+            <h3>${escapeHtml(member)}</h3>
+            <span class="badge progress">${owned.length}개 보유</span>
+          </div>
+          <p><strong>현재:</strong> ${current ? escapeHtml(current.title) : "진행 중인 업무 없음"}</p>
+          <p><strong>다음:</strong> ${next ? escapeHtml(next.title) : "예정 업무 없음"}</p>
+          ${blocked ? `<p class="danger-text"><strong>막힘:</strong> ${escapeHtml(blocked.title)}</p>` : ""}
+        </article>
+      `;
+    })
+    .join("");
+
+  const notes = state.validations
+    .slice(0, 4)
     .map(
       (item) => `
         <article class="list-item">
-          <span class="badge done">${escapeHtml(item.date)}</span>
+          <span class="badge done">${escapeHtml(item.date)} · 업무 메모</span>
           <h3>${escapeHtml(item.target)}</h3>
-          <p><strong>가설:</strong> ${escapeHtml(item.hypothesis)}</p>
-          <p><strong>인사이트:</strong> ${escapeHtml(item.insight)}</p>
+          <p><strong>상태:</strong> ${escapeHtml(item.hypothesis)}</p>
+          <p><strong>맥락:</strong> ${escapeHtml(item.insight)}</p>
           <p><strong>다음 액션:</strong> ${escapeHtml(item.nextAction)}</p>
         </article>
       `,
     )
     .join("");
+
+  container.innerHTML = `
+    <div class="workload-grid">${workload}</div>
+    ${notes ? `<div class="section-divider">최근 업무 메모</div>${notes}` : ""}
+  `;
 }
 
 function renderTasks() {
@@ -506,7 +542,7 @@ function renderArchive() {
               <p>${escapeHtml(item.summary)}</p>
               <div class="meta-row">
                 <span>${escapeHtml(item.createdAt)}</span>
-                ${item.link ? `<span>${escapeHtml(item.link)}</span>` : ""}
+                ${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" rel="noreferrer">자료 열기</a>` : ""}
               </div>
             </article>
           `,

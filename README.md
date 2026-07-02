@@ -12,10 +12,11 @@ https://research-team-os.vercel.app
 
 - 데일리 스크럼 기록
 - 태스크 상태와 마감일 관리
+- 팀원별 현재 업무와 다음 업무 가시화
 - 논문 섹션별 작성 상태 추적
 - A/B 테스트 설계와 CTR, CVR, 구매버튼 클릭 측정 방식 정리
 - 주간보고서, 선행연구, 광고 자극물, 회의록 아카이빙
-- 고객검증 인사이트와 다음 액션 누적
+- Google Drive 자료 링크 아카이빙
 
 ## 로컬 실행
 
@@ -53,6 +54,18 @@ TEAM_OS_PASSCODE=팀원들이 공유할 패스코드
 ```
 
 환경변수 추가 후 Vercel에서 재배포하면 상단의 `팀 DB 동기화` 버튼으로 공유 DB에 연결됩니다.
+
+## Google Drive 자료 운영
+
+공유 폴더:
+
+```text
+https://drive.google.com/drive/folders/1FcPQHlpGc736etJQKGEEhqWpasH56tun?usp=drive_link
+```
+
+무료 운영을 우선하므로 파일 업로드는 Google Drive 공유 폴더에서 직접 하고, 이 OS에는 자료명, 유형, 공유 링크, 요약을 저장합니다. 저장된 링크는 `자료 열기`로 바로 이동할 수 있습니다.
+
+앱 안에서 바로 Drive 업로드까지 하려면 Google Picker 또는 Drive API OAuth 설정이 필요합니다. 비용은 들지 않을 수 있지만 Google Cloud 프로젝트, OAuth 동의 화면, API 키/클라이언트 ID, 권한 검수 가능성이 생겨 MVP 운영에는 부담이 큽니다. 지금 구조는 가장 단순하고 무료인 방식입니다.
 
 ## GitHub / Vercel
 

@@ -132,6 +132,9 @@ h1 {
 
 .primary-button,
 .ghost-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 40px;
   border-radius: 8px;
   padding: 0 14px;
@@ -149,6 +152,10 @@ h1 {
   color: #334155;
   background: white;
   border-color: var(--line);
+}
+
+.link-button {
+  text-decoration: none;
 }
 
 .layout {
@@ -343,6 +350,37 @@ label {
   gap: 12px;
 }
 
+.workload-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.workload-card {
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #f8fbff;
+  padding: 12px;
+}
+
+.workload-card p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.danger-text {
+  color: var(--red) !important;
+}
+
+.section-divider {
+  margin-top: 4px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .timeline-item,
 .list-item,
 .paper-item,
@@ -521,6 +559,10 @@ label {
 
   .summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workload-grid {
+    grid-template-columns: 1fr;
   }
 
   .two-column > * + * {

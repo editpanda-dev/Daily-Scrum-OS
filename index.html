@@ -12,7 +12,7 @@
         <p class="eyebrow">AIM HUFStudy · 논문 작성용 내부 OS</p>
         <h1>AIM Research Team OS</h1>
         <p class="subtitle">
-          데일리 스크럼, A/B 테스트 설계, 고객검증, 선행연구, 주간보고서를 한 흐름으로 관리합니다.
+          아주 작은 업무 단위, 현재/다음 담당 업무, 데일리 스크럼, 자료 아카이브를 한 화면에서 관리합니다.
         </p>
       </div>
       <div class="header-actions">
@@ -23,6 +23,7 @@
           <button class="ghost-button" id="syncBtn" type="button">팀 DB 동기화</button>
         </div>
         <button class="ghost-button" id="exportBtn" type="button">JSON 내보내기</button>
+        <a class="ghost-button link-button" id="driveHeaderLink" href="#" target="_blank" rel="noreferrer">Drive 열기</a>
         <button class="primary-button" id="resetBtn" type="button">샘플 복원</button>
       </div>
     </header>
@@ -35,9 +36,9 @@
           <p>섹션 완료 기준</p>
         </article>
         <article class="metric-card accent-green">
-          <span>고객검증</span>
+          <span>자료 링크</span>
           <strong id="validationCount">0</strong>
-          <p>인터뷰/실험 로그</p>
+          <p>Drive/문서 아카이브</p>
         </article>
         <article class="metric-card accent-red">
           <span>블로커</span>
@@ -74,16 +75,16 @@
           <section class="panel">
             <div class="panel-heading">
               <div>
-                <h2>최근 고객검증 인사이트</h2>
-                <p>아이디어가 아니라 실제 반응을 기준으로 다음 액션을 정합니다.</p>
+                <h2>팀원별 업무 브리핑</h2>
+                <p>각자가 지금 들고 있는 일과 곧 맡게 될 일을 함께 확인합니다.</p>
               </div>
             </div>
             <form class="inline-form" id="validationForm">
-              <input name="target" required placeholder="대상: 예비 인터뷰 3명" />
-              <input name="hypothesis" required placeholder="검증 가설" />
-              <textarea name="insight" required rows="2" placeholder="주요 반응/인사이트"></textarea>
-              <input name="nextAction" required placeholder="다음 액션" />
-              <button class="primary-button" type="submit">검증 로그 추가</button>
+              <input name="target" required placeholder="공유할 업무: 예: 설문 문항 1차 정리" />
+              <input name="hypothesis" required placeholder="현재 상태: 예: 진행중 / 서린 리뷰 필요" />
+              <textarea name="insight" required rows="2" placeholder="맥락: 어디까지 했고 무엇을 봐야 하는지"></textarea>
+              <input name="nextAction" required placeholder="다음 액션: 예: 내일 오전까지 문항 5개로 축소" />
+              <button class="primary-button" type="submit">업무 메모 추가</button>
             </form>
             <div class="stack-list" id="recentValidationList"></div>
           </section>
@@ -240,8 +241,9 @@
             <div class="panel-heading">
               <div>
                 <h2>자료 추가</h2>
-                <p>선행연구, 광고 자극물, 실험 설계, 회의록을 한 곳에 모읍니다.</p>
+                <p>파일은 Google Drive에 올리고, OS에는 링크와 요약을 저장합니다.</p>
               </div>
+              <a class="ghost-button link-button" id="driveArchiveLink" href="#" target="_blank" rel="noreferrer">공유 Drive 열기</a>
             </div>
             <div class="form-grid">
               <label>
@@ -262,7 +264,7 @@
             </div>
             <label>
               링크 또는 파일 위치
-              <input name="link" placeholder="/Users/... 또는 Google Drive 링크" />
+              <input name="link" placeholder="Google Drive 문서/파일/폴더 공유 링크" />
             </label>
             <label>
               요약
