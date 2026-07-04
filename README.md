@@ -67,6 +67,13 @@ https://drive.google.com/drive/folders/1FcPQHlpGc736etJQKGEEhqWpasH56tun?usp=dri
 
 앱 안에서 바로 Drive 업로드까지 하려면 Google Picker 또는 Drive API OAuth 설정이 필요합니다. 비용은 들지 않을 수 있지만 Google Cloud 프로젝트, OAuth 동의 화면, API 키/클라이언트 ID, 권한 검수 가능성이 생겨 MVP 운영에는 부담이 큽니다. 지금 구조는 가장 단순하고 무료인 방식입니다.
 
+## Notion 회의록 운영
+
+회의 원본과 주차별 개인 리서치는 Notion에서 관리하고, 확정된 `TODO`, `BLOCKED`, `DECISION`, `ARCHIVE`만 Research Team OS에 반영합니다.
+
+- Notion 회의록 템플릿: `docs/notion-meeting-os-template.md`
+- Google Docs 대체 템플릿: `docs/google-docs-meeting-template.md`
+
 ## GitHub / Vercel
 
 - GitHub: https://github.com/editpanda-dev/Daily-Scrum-OS
