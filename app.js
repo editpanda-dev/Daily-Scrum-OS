@@ -91,6 +91,17 @@ const sampleState = {
       createdAt: today,
     },
   ],
+  calendarItems: [
+    {
+      id: "calendar-next-meeting",
+      title: "A/B 실험 자극물 수집 현황 점검",
+      owner: "팀 공통",
+      startDate: today,
+      dueDate: today,
+      type: "회의",
+      note: "Notion 회의록 ZIP 업로드 후 각자 100장 조사 진행 상황을 확인한다.",
+    },
+  ],
   teamAlignment: {
     currentGoal: "A/B 테스트 설계 완성",
     theme: "AI-like score가 소비자 신뢰와 행동지표에 미치는 영향 검증",
@@ -140,67 +151,91 @@ const sampleState = {
   paperSections: [
     {
       id: "paper-intro",
-      title: "서론: 생성형 AI 광고와 소비자 신뢰 문제",
+      title: "1. 서론",
       owner: "최서린",
       status: "progress",
       done: false,
+      goal: "생성형 AI 광고 확산과 소비자 신뢰 문제를 연구 배경으로 정리한다.",
+      progress: "문제의식과 연구 필요성 초안 작성 중",
+      next: "AI 광고 인식, 신뢰 하락, 행동 반응을 연결하는 연구문제 문장 다듬기",
+      notes: "프로젝트 전체 방향과 ESG/디지털 취약계층 문제의식을 자연스럽게 연결한다.",
     },
     {
       id: "paper-lit",
-      title: "선행연구: AI 광고 인식, 신뢰, 클릭/전환 행동",
+      title: "2. 선행연구",
       owner: "최서린",
       status: "todo",
       done: false,
+      goal: "AI 광고 인식, 소비자 신뢰, CTR/CVR 행동지표 관련 문헌을 정리한다.",
+      progress: "관련 논문 후보 수집 단계",
+      next: "핵심 선행연구 3편 이상 요약 후 변수 관계 표로 정리",
+      notes: "AI-like 인식과 신뢰, 구매의향 사이의 연결 근거를 우선 확보한다.",
     },
     {
       id: "paper-method",
-      title: "연구방법: A/B 테스트 설계 및 행동지표 측정",
+      title: "3. 연구방법",
       owner: "지우진",
       status: "progress",
       done: false,
+      goal: "A/B 테스트 설계, 표본 구성, 행동지표 측정 방식을 명확히 정의한다.",
+      progress: "CTR, CVR, 구매버튼 클릭 이벤트 정의 초안 작성",
+      next: "실험 페이지에서 수집할 로그 단위를 아주 작은 이벤트로 쪼개기",
+      notes: "행동지표는 노출, 광고 클릭, 상세 진입, CTA 클릭으로 분리한다.",
     },
     {
       id: "paper-stimuli",
-      title: "실험자극물: Human/AI 광고 후보와 risk band",
+      title: "4. 실험자극물",
       owner: "최은서",
       status: "todo",
       done: false,
+      goal: "Human/AI 광고 이미지 후보와 AI-like risk band 기준을 정리한다.",
+      progress: "조사 기준과 수집 출처 정리 필요",
+      next: "지우진, 최서린, 최은서가 각자 광고 이미지 100장씩 조사",
+      notes: "같은 상품군, 유사한 정보량, 비슷한 레이아웃 기준으로 후보를 수집한다.",
     },
     {
       id: "paper-result",
-      title: "결과: CTR·CVR·구매버튼 클릭 차이 분석",
+      title: "5. 결과",
       owner: "지우진",
       status: "todo",
       done: false,
+      goal: "실험 결과를 CTR, CVR, 구매버튼 클릭 기준으로 비교 분석한다.",
+      progress: "실험 설계 확정 후 작성 예정",
+      next: "행동 로그 저장 형식과 분석 테이블 구조 확정",
+      notes: "AI-like score 구간별 차이가 보이는지 확인한다.",
     },
     {
       id: "paper-discussion",
-      title: "논의: trust penalty와 ROI 임계점 보정",
+      title: "6. 논의 및 결론",
       owner: "팀 공통",
       status: "todo",
       done: false,
+      goal: "trust penalty, ROI 판단, 실무적 시사점을 정리한다.",
+      progress: "결과 도출 후 작성 예정",
+      next: "연구 한계와 후속 연구 방향 후보 메모",
+      notes: "AI 광고가 항상 유리하다는 주장이 아니라 신뢰 비용을 함께 고려하는 결론으로 잡는다.",
     },
   ],
   experiments: [
     {
-      id: "exp-1",
-      title: "광고 자극물 조건",
-      body: "동일 제품군에서 AI 제작 광고와 인간 제작 광고를 최대한 동일한 정보량과 레이아웃으로 비교한다.",
+      id: "exp-woojin",
+      title: "지우진 · 광고 이미지 100장 조사",
+      body: "A/B 테스트에 사용할 광고 후보를 수집하고, 클릭·전환 행동지표 측정 가능성을 함께 기록한다.",
     },
     {
-      id: "exp-2",
-      title: "무작위 배정",
-      body: "참여자를 A안과 B안에 무작위 배정해 노출 순서와 표본 편향을 줄인다.",
+      id: "exp-seorin",
+      title: "최서린 · 광고 이미지 100장 조사",
+      body: "소비자 신뢰와 AI 광고 인식 관점에서 자극물 후보를 검토하고 문헌 근거와 연결한다.",
     },
     {
-      id: "exp-3",
-      title: "행동 로그",
-      body: "광고 노출, 광고 클릭, 상세 페이지 진입, 구매버튼 클릭을 이벤트로 분리해 저장한다.",
+      id: "exp-eunseo",
+      title: "최은서 · 광고 이미지 100장 조사",
+      body: "Human/AI 광고 후보와 AI-like risk band 기준에 맞춰 이미지 출처와 통제 조건을 정리한다.",
     },
     {
-      id: "exp-4",
-      title: "설문 결합",
-      body: "행동지표와 함께 신뢰도, AI스러움 인식, 구매의향을 5점 척도로 측정한다.",
+      id: "exp-control",
+      title: "자극물 통제 기준",
+      body: "상품군, 정보량, 레이아웃, CTA 위치가 지나치게 달라지지 않도록 수집 기준을 맞춘다. 세부 내용은 Notion 회의록 정리본을 기준으로 업데이트한다.",
     },
   ],
 };
@@ -209,15 +244,35 @@ let state = readLocalState();
 let cloudEnabled = false;
 let saveTimer = null;
 let calendarCursor = new Date(`${today.slice(0, 7)}-01T00:00:00`);
+let selectedPaperSectionId = state.paperSections?.[0]?.id || sampleState.paperSections[0].id;
 
 function readLocalState() {
   const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) return structuredClone(sampleState);
+  if (!raw) return normalizeState(structuredClone(sampleState));
   try {
-    return { ...structuredClone(sampleState), ...JSON.parse(raw) };
+    return normalizeState({ ...structuredClone(sampleState), ...JSON.parse(raw) });
   } catch {
-    return structuredClone(sampleState);
+    return normalizeState(structuredClone(sampleState));
   }
+}
+
+function normalizeState(nextState) {
+  const defaults = structuredClone(sampleState);
+  const paperById = new Map(defaults.paperSections.map((section) => [section.id, section]));
+  const paperSections = (nextState.paperSections || defaults.paperSections).map((section) => ({
+    ...(paperById.get(section.id) || {}),
+    ...section,
+  }));
+
+  const hasUpdatedExperimentPlan = (nextState.experiments || []).some((item) => item.id === "exp-woojin");
+
+  return {
+    ...defaults,
+    ...nextState,
+    calendarItems: nextState.calendarItems || defaults.calendarItems,
+    paperSections,
+    experiments: hasUpdatedExperimentPlan ? nextState.experiments : defaults.experiments,
+  };
 }
 
 function saveLocalState() {
@@ -271,7 +326,7 @@ async function fetchCloudState() {
 
   const data = await response.json();
   if (data.payload) {
-    state = { ...structuredClone(sampleState), ...data.payload };
+    state = normalizeState({ ...structuredClone(sampleState), ...data.payload });
     saveLocalState();
   }
   cloudEnabled = true;
@@ -419,9 +474,7 @@ function renderDriveLinks() {
 
 function renderMemberOptions() {
   document
-    .querySelectorAll(
-      'select[name="member"], select[name="owner"], #ownerFilter, #calendarOwnerFilter, #speakerSelect, #actionOwnerSelect',
-    )
+    .querySelectorAll('select[name="member"], select[name="owner"], #ownerFilter, #calendarOwnerFilter')
     .forEach((select) => {
       const current = select.value;
       const leading = select.id === "ownerFilter" || select.id === "calendarOwnerFilter" ? '<option value="all">전체 담당자</option>' : "";
@@ -908,7 +961,23 @@ function getCalendarEvents() {
     status: "meeting",
   }));
 
-  return [...taskEvents, ...meetingEvents];
+  const manualEvents = (state.calendarItems || [])
+    .filter((item) => ownerFilter === "all" || item.owner === ownerFilter)
+    .flatMap((item) => {
+      const [startDate, endDate] = getTaskDateRange(item);
+      return getDateRange(startDate, endDate).map((date) => ({
+        date,
+        title: item.title,
+        owner: item.owner,
+        type: "schedule",
+        status: item.type || "일정",
+        rangeLabel: getTaskRangeLabel(item),
+        isStart: date === startDate,
+        isEnd: date === endDate,
+      }));
+    });
+
+  return [...taskEvents, ...manualEvents, ...meetingEvents];
 }
 
 function renderCalendar() {
@@ -946,7 +1015,17 @@ function renderCalendar() {
             .map(
               (event) => `
                 <div class="calendar-event ${event.type} ${event.isStart ? "range-start" : ""} ${event.isEnd ? "range-end" : ""}">
-                  <span>${event.type === "meeting" ? "회의" : event.isStart ? `시작 · ${statusLabel(event.status)}` : event.isEnd ? `마감 · ${statusLabel(event.status)}` : `진행 · ${statusLabel(event.status)}`}</span>
+                  <span>${
+                    event.type === "meeting"
+                      ? "회의"
+                      : event.type === "schedule"
+                        ? `${event.isStart ? "시작" : event.isEnd ? "종료" : "진행"} · ${escapeHtml(event.status)}`
+                        : event.isStart
+                          ? `시작 · ${statusLabel(event.status)}`
+                          : event.isEnd
+                            ? `마감 · ${statusLabel(event.status)}`
+                            : `진행 · ${statusLabel(event.status)}`
+                  }</span>
                   <p>${escapeHtml(event.title)}</p>
                   <small>${escapeHtml(event.rangeLabel ? `${event.owner} · ${event.rangeLabel}` : event.owner)}</small>
                 </div>
@@ -1091,22 +1170,84 @@ function renderMeetings() {
 
 function renderPaper() {
   const container = document.getElementById("paperList");
-  container.innerHTML = state.paperSections
-    .map(
-      (section) => `
-        <article class="paper-item">
-          <div class="paper-topline">
-            <div>
-              <span class="badge ${section.status}">${statusLabel(section.status)}</span>
-              <h3>${escapeHtml(section.title)}</h3>
-              <p class="meta-row">${escapeHtml(section.owner)}</p>
-            </div>
-            <input type="checkbox" data-paper-done="${escapeHtml(section.id)}" ${section.done ? "checked" : ""} aria-label="논문 섹션 완료" />
-          </div>
-        </article>
-      `,
-    )
+  const detail = document.getElementById("paperDetail");
+  if (!container || !detail) return;
+
+  const sections = state.paperSections || [];
+  const selected = sections.find((section) => section.id === selectedPaperSectionId) || sections[0];
+  if (selected && selected.id !== selectedPaperSectionId) selectedPaperSectionId = selected.id;
+
+  container.innerHTML = sections
+    .map((section) => {
+      const relatedTasks = state.tasks.filter((task) => task.source.includes(section.title) || task.title.includes(section.title.replace(/^\d+\.\s*/, "")));
+      return `
+        <button class="paper-row ${section.id === selectedPaperSectionId ? "active" : ""}" type="button" data-paper-select="${escapeHtml(section.id)}">
+          <span class="badge ${section.status}">${statusLabel(section.status)}</span>
+          <strong>${escapeHtml(section.title)}</strong>
+          <span>${escapeHtml(section.owner)} · 연결 업무 ${relatedTasks.length}개</span>
+        </button>
+      `;
+    })
     .join("");
+
+  if (!selected) {
+    detail.innerHTML = '<div class="empty-state">논문 목차가 없습니다.</div>';
+    return;
+  }
+
+  const sectionTasks = state.tasks
+    .filter((task) => task.source.includes(selected.title) || task.title.includes(selected.title.replace(/^\d+\.\s*/, "")))
+    .slice(0, 5);
+
+  detail.innerHTML = `
+    <div class="paper-detail-head">
+      <div>
+        <span class="badge ${selected.status}">${statusLabel(selected.status)}</span>
+        <h3>${escapeHtml(selected.title)}</h3>
+        <p>${escapeHtml(selected.owner)}</p>
+      </div>
+      <label class="done-toggle">
+        <input type="checkbox" data-paper-done="${escapeHtml(selected.id)}" ${selected.done ? "checked" : ""} />
+        완료
+      </label>
+    </div>
+    <div class="paper-detail-grid">
+      <section>
+        <h4>작성 목표</h4>
+        <p>${escapeHtml(selected.goal || "목표를 입력해주세요.")}</p>
+      </section>
+      <section>
+        <h4>진행상황</h4>
+        <p>${escapeHtml(selected.progress || "진행상황을 입력해주세요.")}</p>
+      </section>
+      <section>
+        <h4>다음 액션</h4>
+        <p>${escapeHtml(selected.next || "다음 액션을 정해주세요.")}</p>
+      </section>
+      <section>
+        <h4>메모</h4>
+        <p>${escapeHtml(selected.notes || "관련 메모가 없습니다.")}</p>
+      </section>
+    </div>
+    <div class="paper-detail-actions">
+      <label>
+        상태
+        <select data-paper-status="${escapeHtml(selected.id)}">
+          ${statuses
+            .map(([key, label]) => `<option value="${key}" ${selected.status === key ? "selected" : ""}>${label}</option>`)
+            .join("")}
+        </select>
+      </label>
+    </div>
+    <section class="linked-task-list">
+      <h4>연결된 업무</h4>
+      ${
+        sectionTasks.length
+          ? sectionTasks.map((task) => `<p>${escapeHtml(task.owner)} · ${escapeHtml(getTaskRangeLabel(task))} · ${escapeHtml(task.title)}</p>`).join("")
+          : '<p>아직 이 목차와 직접 연결된 업무가 없습니다.</p>'
+      }
+    </section>
+  `;
 }
 
 function renderExperiments() {
@@ -1177,6 +1318,33 @@ function bindEvents() {
   document.getElementById("calendarToday").addEventListener("click", () => {
     calendarCursor = new Date(`${today.slice(0, 7)}-01T00:00:00`);
     renderCalendar();
+  });
+
+  document.getElementById("calendarEventForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const startDate = String(form.get("startDate") || form.get("dueDate") || today);
+    const dueDate = String(form.get("dueDate") || startDate);
+    const [normalizedStartDate, normalizedDueDate] = getTaskDateRange({ startDate, dueDate });
+
+    state.calendarItems = [
+      {
+        id: createId("calendar"),
+        title: String(form.get("title") || "").trim(),
+        owner: String(form.get("owner") || "팀 공통"),
+        type: String(form.get("type") || "일정"),
+        startDate: normalizedStartDate,
+        dueDate: normalizedDueDate,
+        note: String(form.get("note") || "").trim(),
+      },
+      ...(state.calendarItems || []),
+    ];
+
+    event.currentTarget.reset();
+    event.currentTarget.querySelector('input[name="startDate"]').value = today;
+    event.currentTarget.querySelector('input[name="dueDate"]').value = today;
+    saveState();
+    render();
   });
 
   document.getElementById("notionImportBtn").addEventListener("click", async () => {
@@ -1272,42 +1440,6 @@ function bindEvents() {
     downloadTextFile(`meeting-summary-${today}.md`, markdown);
   });
 
-  const meetingDateInput = document.querySelector('#meetingForm input[name="date"]');
-  if (meetingDateInput && !meetingDateInput.value) meetingDateInput.value = today;
-
-  document.getElementById("addAgendaBtn").addEventListener("click", () => {
-    const input = document.getElementById("agendaInput");
-    const agenda = input.value.trim();
-    if (!agenda) return;
-
-    appendMinutesLine(`AGENDA: ${agenda}`);
-    input.value = "";
-  });
-
-  document.getElementById("addSpeakerBtn").addEventListener("click", () => {
-    const customInput = document.getElementById("customSpeakerInput");
-    const selectedName = document.getElementById("speakerSelect").value;
-    const speaker = customInput.value.trim() || selectedName;
-    if (!speaker) return;
-
-    appendMinutesLine(`${speaker}: `, true);
-    customInput.value = "";
-  });
-
-  document.getElementById("addActionBtn").addEventListener("click", () => {
-    const actionInput = document.getElementById("actionTitleInput");
-    const type = document.getElementById("actionTypeSelect").value || "TODO";
-    const owner = document.getElementById("actionOwnerSelect").value || members[0];
-    const startDate = document.getElementById("actionStartDate").value || today;
-    const dueDate = document.getElementById("actionDueDate").value || startDate;
-    const [normalizedStartDate, normalizedDueDate] = getTaskDateRange({ startDate, dueDate });
-    const title = actionInput.value.trim();
-    if (!title) return;
-
-    appendMinutesLine(`${type}: @${owner} ${normalizedStartDate}~${normalizedDueDate} ${title}`);
-    actionInput.value = "";
-  });
-
   document.getElementById("taskForm").addEventListener("submit", (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -1347,41 +1479,6 @@ function bindEvents() {
     render();
   });
 
-  document.getElementById("meetingForm").addEventListener("submit", (event) => {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const title = String(form.get("title") || "").trim();
-    const date = String(form.get("date") || today);
-    const minutes = String(form.get("minutes") || "").trim();
-    const extractedTasks = parseMeetingActions(minutes, title);
-
-    state.meetings = [
-      {
-        id: createId("meeting"),
-        date,
-        title,
-        minutes,
-        actionsCount: extractedTasks.length,
-        createdAt: today,
-      },
-      ...(state.meetings || []),
-    ];
-    state.tasks = [...extractedTasks, ...state.tasks];
-    state.archives.unshift({
-      id: createId("archive"),
-      title,
-      type: "회의록",
-      link: DRIVE_FOLDER_URL,
-      summary: `회의록에서 향후 업무 ${extractedTasks.length}개를 추출했습니다.`,
-      createdAt: date,
-    });
-
-    event.currentTarget.reset();
-    event.currentTarget.querySelector('input[name="date"]').value = today;
-    saveState();
-    render();
-  });
-
   document.addEventListener("change", (event) => {
     const statusTaskId = event.target.dataset?.taskStatus;
     if (statusTaskId) {
@@ -1402,6 +1499,22 @@ function bindEvents() {
       saveState();
       render();
     }
+
+    const paperStatusId = event.target.dataset?.paperStatus;
+    if (paperStatusId) {
+      state.paperSections = state.paperSections.map((section) =>
+        section.id === paperStatusId ? { ...section, status: event.target.value, done: event.target.value === "done" } : section,
+      );
+      saveState();
+      render();
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    const paperSelectId = event.target.closest("[data-paper-select]")?.dataset?.paperSelect;
+    if (!paperSelectId) return;
+    selectedPaperSectionId = paperSelectId;
+    renderPaper();
   });
 
   document.getElementById("scrumForm").addEventListener("submit", (event) => {

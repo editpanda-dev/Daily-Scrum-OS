@@ -56,7 +56,7 @@
         <button class="tab-button active" type="button" data-tab="dashboard">대시보드</button>
         <button class="tab-button" type="button" data-tab="calendar">캘린더</button>
         <button class="tab-button" type="button" data-tab="scrum">데일리 스크럼</button>
-        <button class="tab-button" type="button" data-tab="meetings">회의록</button>
+        <button class="tab-button" type="button" data-tab="meetings">회의록 정리본</button>
         <button class="tab-button" type="button" data-tab="paper">논문 보드</button>
         <button class="tab-button" type="button" data-tab="experiment">A/B 실험 설계</button>
         <button class="tab-button" type="button" data-tab="archive">자료 아카이브</button>
@@ -170,6 +170,30 @@
 
       <section class="tab-panel" id="calendar">
         <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>일정 추가</h2>
+              <p>회의, 조사 기간, 발표 준비처럼 태스크가 아닌 팀 일정을 캘린더에 직접 올립니다.</p>
+            </div>
+          </div>
+          <form class="calendar-event-form" id="calendarEventForm">
+            <input name="title" required placeholder="일정명: 예: 광고 이미지 100장 조사 마감" />
+            <select name="owner"></select>
+            <select name="type">
+              <option>회의</option>
+              <option>조사</option>
+              <option>마감</option>
+              <option>검토</option>
+              <option>발표</option>
+            </select>
+            <input name="startDate" type="date" aria-label="시작일" />
+            <input name="dueDate" type="date" aria-label="종료일" />
+            <input name="note" placeholder="메모: 예: Notion 정리본 기준으로 진행상황 확인" />
+            <button class="primary-button" type="submit">일정 추가</button>
+          </form>
+        </section>
+
+        <section class="panel">
           <div class="panel-heading calendar-heading">
             <div>
               <h2>업무 얼라인 캘린더</h2>
@@ -256,98 +280,32 @@
 
       <section class="tab-panel" id="meetings">
         <div class="two-column">
-          <form class="panel form-panel" id="meetingForm">
+          <section class="panel">
             <div class="panel-heading">
               <div>
-                <h2>회의록 입력</h2>
-                <p>회의록 원문을 저장하고, TODO/BLOCKED 줄은 향후 업무로 자동 전환합니다.</p>
+                <h2>Notion 회의록 운영</h2>
+                <p>회의록은 Notion에서 작성하고, 하위 페이지 포함 ZIP을 대시보드에서 업로드해 정리합니다.</p>
               </div>
             </div>
-            <div class="form-grid">
-              <label>
-                회의 제목
-                <input name="title" required placeholder="예: 2주차 A/B 테스트 설계 회의" />
-              </label>
-              <label>
-                회의일
-                <input name="date" type="date" />
-              </label>
+            <div class="operation-steps">
+              <article>
+                <span>1</span>
+                <p>Notion에서 회의록과 개인 조사 하위 페이지를 작성합니다.</p>
+              </article>
+              <article>
+                <span>2</span>
+                <p>Markdown & CSV 형식으로 하위 페이지 포함 ZIP을 내보냅니다.</p>
+              </article>
+              <article>
+                <span>3</span>
+                <p>대시보드의 Notion ZIP 업로드에서 목표, 안건, R&R을 정리합니다.</p>
+              </article>
             </div>
-
-            <section class="meeting-builder" aria-label="회의록 빌더">
-              <div class="builder-row">
-                <label>
-                  안건
-                  <input id="agendaInput" type="text" placeholder="예: A/B 테스트 행동지표 확정" />
-                </label>
-                <button class="ghost-button" id="addAgendaBtn" type="button">안건 추가</button>
-              </div>
-
-              <div class="builder-row speaker-row">
-                <label>
-                  발언자
-                  <select id="speakerSelect" aria-label="발언자 선택"></select>
-                </label>
-                <label>
-                  직접 입력
-                  <input id="customSpeakerInput" type="text" placeholder="예: 외부 멘토" />
-                </label>
-                <button class="ghost-button" id="addSpeakerBtn" type="button">응답자 추가</button>
-              </div>
-
-              <div class="action-builder">
-                <div class="form-grid">
-                  <label>
-                    담당자
-                    <select id="actionOwnerSelect" aria-label="액션아이템 담당자"></select>
-                  </label>
-                  <label>
-                    상태
-                    <select id="actionTypeSelect" aria-label="액션아이템 상태">
-                      <option value="TODO">TODO</option>
-                      <option value="BLOCKED">BLOCKED</option>
-                    </select>
-                  </label>
-                  <label>
-                    시작일
-                    <input id="actionStartDate" type="date" />
-                  </label>
-                  <label>
-                    종료일
-                    <input id="actionDueDate" type="date" />
-                  </label>
-                </div>
-                <div class="builder-row">
-                  <label>
-                    업무내용
-                    <input id="actionTitleInput" type="text" placeholder="예: 구매버튼 클릭 이벤트 정의서 작성" />
-                  </label>
-                  <button class="primary-button" id="addActionBtn" type="button">액션아이템 추가</button>
-                </div>
-              </div>
-            </section>
-
-            <label>
-              회의록 본문
-              <textarea
-                name="minutes"
-                rows="12"
-                required
-                placeholder="예:
-AGENDA: A/B 테스트 행동지표 확정
-지우진: 구매버튼 클릭은 상세 페이지 CTA 클릭으로 별도 측정하는 것이 좋음
-DECISION: A/B 테스트는 CTR, CVR, 구매버튼 클릭을 모두 기록한다
-TODO: @지우진 2026-07-05~2026-07-10 구매버튼 클릭 이벤트 정의서 작성
-TODO: @최서린 2026-07-06 소비자 신뢰 선행연구 3편 요약
-BLOCKED: @최은서 광고 자극물 출처 확인 필요"
-              ></textarea>
-            </label>
             <div class="helper-box">
-              <strong>자동 태스크 규칙</strong>
-              <p><code>TODO: @담당자 YYYY-MM-DD~YYYY-MM-DD 업무내용</code> 또는 <code>BLOCKED: @담당자 업무내용</code> 형식으로 쓰면 태스크 보드와 향후 업무 스택에 자동 추가됩니다.</p>
+              <strong>권장 태그</strong>
+              <p><code>GOAL:</code> <code>TOPIC:</code> <code>AGENDA:</code> <code>DECISION:</code> <code>NEXT_AGENDA:</code> <code>TODO:</code> <code>BLOCKED:</code>를 쓰면 대시보드 정리 품질이 좋아집니다.</p>
             </div>
-            <button class="primary-button" type="submit">회의록 저장 및 업무 추출</button>
-          </form>
+          </section>
 
           <section class="panel">
             <div class="panel-heading">
@@ -366,8 +324,8 @@ BLOCKED: @최은서 광고 자극물 출처 확인 필요"
           <section class="panel">
             <div class="panel-heading">
               <div>
-                <h2>논문 섹션 보드</h2>
-                <p>서론부터 결론까지 작성 상태와 담당자를 추적합니다.</p>
+                <h2>논문 목차</h2>
+                <p>목차를 누르면 오른쪽에서 담당자, 진행상황, 다음 액션을 확인합니다.</p>
               </div>
             </div>
             <div class="paper-list" id="paperList"></div>
@@ -376,23 +334,11 @@ BLOCKED: @최은서 광고 자극물 출처 확인 필요"
           <section class="panel">
             <div class="panel-heading">
               <div>
-                <h2>주간보고서 연결</h2>
-                <p>보고서 산출물을 논문 근거와 다음 액션으로 연결합니다.</p>
+                <h2>목차 상세</h2>
+                <p>팀원이 각 섹션의 현재 상태를 빠르게 열어볼 수 있습니다.</p>
               </div>
             </div>
-            <div class="report-card">
-              <span class="badge">1주차 보고서</span>
-              <h3>연구문제 재정의 및 역할 분담</h3>
-              <p>
-                AI-like score가 소비자 신뢰, CTR, CVR, 구매버튼 클릭, ROI 판단에 미치는 영향을
-                검증하는 방향으로 연구문제를 재정의했습니다.
-              </p>
-              <ul>
-                <li>최서린: 문헌·보고서·논문 구조</li>
-                <li>지우진: A/B 테스트 및 행동지표 분석</li>
-                <li>최은서: 광고 이미지·risk band·hold-out set</li>
-              </ul>
-            </div>
+            <div id="paperDetail"></div>
           </section>
         </div>
       </section>
@@ -403,7 +349,7 @@ BLOCKED: @최은서 광고 자극물 출처 확인 필요"
             <div class="panel-heading">
               <div>
                 <h2>A/B 테스트 설계</h2>
-                <p>AI 광고와 인간 제작 광고의 행동지표 차이를 검증합니다.</p>
+                <p>세 명이 각자 광고 이미지 100장씩 조사하고, 회의록 기준으로 자극물 조건을 맞춥니다.</p>
               </div>
             </div>
             <div class="experiment-grid" id="experimentGrid"></div>
@@ -412,17 +358,17 @@ BLOCKED: @최은서 광고 자극물 출처 확인 필요"
           <section class="panel">
             <div class="panel-heading">
               <div>
-                <h2>측정 지표 정의</h2>
-                <p>CTR·CVR·구매버튼 클릭을 같은 기준으로 기록합니다.</p>
+                <h2>수집 기준</h2>
+                <p>세부 기준은 Notion 회의록 정리본을 기준으로 갱신합니다.</p>
               </div>
             </div>
             <div class="metric-definition">
-              <h3>CTR</h3>
-              <p>광고 클릭 수 / 광고 노출 수. AI-like score 구간별 클릭 반응 차이를 봅니다.</p>
-              <h3>CVR</h3>
-              <p>전환 수 / 클릭 수. 클릭 이후 구매 의향 또는 신청 행동으로 이어지는지 봅니다.</p>
-              <h3>구매버튼 클릭</h3>
-              <p>상세 페이지 내 구매 CTA 클릭 이벤트. 실제 구매 전 단계의 강한 행동 신호로 기록합니다.</p>
+              <h3>수집량</h3>
+              <p>지우진, 최서린, 최은서가 각각 100장씩 조사해 총 300장 후보군을 만든다.</p>
+              <h3>통제 기준</h3>
+              <p>상품군, 정보량, 레이아웃, CTA 위치가 지나치게 달라지지 않도록 후보를 고른다.</p>
+              <h3>분류 기준</h3>
+              <p>Human/AI 여부, AI-like risk band, 출처, 사용 가능성, 실험 적합성을 함께 기록한다.</p>
             </div>
           </section>
         </div>
