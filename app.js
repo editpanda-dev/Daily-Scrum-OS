@@ -5,6 +5,7 @@ const PASSCODE_KEY = "aim_research_team_os_passcode";
 const API_ENDPOINT = "/api/state";
 const DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1FcPQHlpGc736etJQKGEEhqWpasH56tun?usp=drive_link";
 const today = formatDateKey(new Date());
+const DEFAULT_REVISION = "2026-07-05-hufstudy-roi-alignment";
 
 const members = ["지우진", "최서린", "최은서", "팀 공통"];
 
@@ -17,55 +18,76 @@ const statuses = [
 ];
 
 const sampleState = {
+  defaultRevision: DEFAULT_REVISION,
   tasks: [
     {
-      id: "task-ab-metrics",
-      title: "A/B 테스트 설계 사례와 CTR·CVR·구매버튼 클릭 측정 방식 정리",
+      id: "task-professor-mail",
+      title: "배교수님 컨택 메일 작성 및 발송",
       owner: "지우진",
-      status: "progress",
-      startDate: "2026-06-28",
-      dueDate: "2026-06-30",
-      source: "1주차 다음 액션",
+      status: "todo",
+      startDate: "2026-07-05",
+      dueDate: "2026-07-07",
+      source: "1차 회의 다음 과제",
       priority: "high",
     },
     {
-      id: "task-literature",
-      title: "생성형 AI 광고 인식·소비자 신뢰 선행연구 3편 이상 요약",
+      id: "task-human-dataset",
+      title: "인간 광고 데이터셋 100개 수집",
       owner: "최서린",
       status: "todo",
-      startDate: "2026-06-29",
-      dueDate: "2026-06-30",
-      source: "문헌조사",
+      startDate: "2026-07-05",
+      dueDate: "2026-07-16",
+      source: "R&R: 인간 데이터셋",
       priority: "high",
     },
     {
-      id: "task-stimuli",
-      title: "Human/AI 광고 자극물 후보와 AI-like risk band 자료 수집",
-      owner: "최은서",
+      id: "task-product-dataset",
+      title: "제품 광고 데이터셋 100개 수집",
+      owner: "지우진",
       status: "todo",
-      startDate: "2026-06-29",
-      dueDate: "2026-06-30",
-      source: "광고자극물",
-      priority: "medium",
+      startDate: "2026-07-05",
+      dueDate: "2026-07-16",
+      source: "R&R: 제품 데이터셋",
+      priority: "high",
     },
     {
-      id: "task-scrum-os",
-      title: "데일리 스크럼 기반 업무 공유 및 자료 아카이빙 워크플로우 구축",
+      id: "task-character-dataset",
+      title: "캐릭터 광고 데이터셋 100개 수집",
+      owner: "최은서",
+      status: "todo",
+      startDate: "2026-07-05",
+      dueDate: "2026-07-16",
+      source: "R&R: 캐릭터 데이터셋",
+      priority: "high",
+    },
+    {
+      id: "task-cnn-study",
+      title: "CNN 구조 탐색 및 팀별 학습 내용 정리",
+      owner: "팀 공통",
+      status: "progress",
+      startDate: "2026-07-05",
+      dueDate: "2026-07-16",
+      source: "공통 과제",
+      priority: "high",
+    },
+    {
+      id: "task-os-finish",
+      title: "Daily Scrum OS Notion ZIP 기반 운영 기능 완성",
       owner: "지우진",
       status: "review",
       startDate: today,
-      dueDate: today,
-      source: "개인 목표",
+      dueDate: "2026-07-16",
+      source: "R&R: OS 완성",
       priority: "high",
     },
     {
-      id: "task-weekly-report",
-      title: "2주차 회의에서 문헌 요약 공유 후 연구문제별 참고문헌 목록 확정",
+      id: "task-report-personal",
+      title: "보고서 개인 파트 작성",
       owner: "팀 공통",
       status: "todo",
-      startDate: "2026-06-30",
-      dueDate: "2026-07-01",
-      source: "주간보고서",
+      startDate: "2026-07-05",
+      dueDate: "2026-07-16",
+      source: "공통 과제",
       priority: "medium",
     },
   ],
@@ -83,37 +105,68 @@ const sampleState = {
   meetings: [
     {
       id: "meeting-1",
-      date: today,
-      title: "2주차 A/B 테스트 설계 준비 회의",
+      date: "2026-07-02",
+      title: "1차 회의: CNN 기반 AI-like probability와 ROI 연구 설계",
       minutes:
-        "AGENDA: A/B 테스트 행동지표 확정\n지우진: 행동지표는 CTR, CVR, 구매버튼 클릭으로 쪼개서 본다\nDECISION: 행동지표는 CTR, CVR, 구매버튼 클릭으로 쪼개서 본다\nTODO: @지우진 2026-07-05~2026-07-10 구매버튼 클릭 이벤트 정의서 작성\nTODO: @최서린 2026-07-06~2026-07-08 소비자 신뢰 선행연구 3편 요약\nTODO: @최은서 2026-07-06 Human/AI 광고 자극물 후보 정리",
-      actionsCount: 3,
+        "GOAL: CNN 기반 AI-like probability가 소비자 저항도, 클릭의향, 구매의도, ROI 판단에 미치는 영향 검증\nAGENDA: AI광고 퀄리티에 따른 ROI 변화\nDECISION: 기존 설문 중심 연구와 달리 클릭의향/구매의도 및 전환 반응을 함께 검증한다\nTODO: @최서린 2026-07-05~2026-07-16 인간 광고 데이터셋 100개 수집\nTODO: @지우진 2026-07-05~2026-07-16 제품 광고 데이터셋 100개 수집\nTODO: @최은서 2026-07-05~2026-07-16 캐릭터 광고 데이터셋 100개 수집",
+      actionsCount: 4,
       createdAt: today,
     },
   ],
   calendarItems: [
     {
       id: "calendar-next-meeting",
-      title: "A/B 실험 자극물 수집 현황 점검",
+      title: "다음 회의: 데이터셋 수집 및 CNN 진행 점검",
       owner: "팀 공통",
-      startDate: today,
-      dueDate: today,
+      startDate: "2026-07-07",
+      dueDate: "2026-07-07",
       type: "회의",
-      note: "Notion 회의록 ZIP 업로드 후 각자 100장 조사 진행 상황을 확인한다.",
+      note: "화요일 21시. 인간/제품/캐릭터 데이터셋 수집 기준과 CNN 학습 현황을 점검한다.",
+    },
+    {
+      id: "calendar-mid-deadline",
+      title: "중간 목표: CNN 완성 및 설문 배포 전 단계",
+      owner: "팀 공통",
+      startDate: "2026-07-05",
+      dueDate: "2026-07-16",
+      type: "마감",
+      note: "CNN 완성, 설문조사 최종 배포 전 단계, 논문 파트 작성까지 완료한다.",
+    },
+    {
+      id: "calendar-survey-launch",
+      title: "설문 배포 및 실험 세팅 완성",
+      owner: "팀 공통",
+      startDate: "2026-07-22",
+      dueDate: "2026-07-22",
+      type: "마감",
+      note: "집단별 전환 반응 측정을 위한 설문/웹 실험 배포 목표일.",
+    },
+    {
+      id: "calendar-final",
+      title: "최종 산출물 마감",
+      owner: "팀 공통",
+      startDate: "2026-08-09",
+      dueDate: "2026-08-09",
+      type: "마감",
+      note: "최종 논문 및 프로젝트 산출물 정리.",
     },
   ],
   teamAlignment: {
-    currentGoal: "A/B 테스트 설계 완성",
-    theme: "AI-like score가 소비자 신뢰와 행동지표에 미치는 영향 검증",
-    updatedAt: today,
+    currentGoal: "CNN 기반 AI-like probability와 광고 저항도가 ROI 판단에 미치는 영향 검증",
+    theme: "AI광고 퀄리티에 따른 ROI 변화: AI처럼 보일 확률이 높을수록 소비자 저항도와 클릭/구매의도가 어떻게 달라지는지 검증",
+    updatedAt: "2026-07-02",
     sourceFiles: 1,
-    agendas: ["CTR/CVR 측정 방식 정리", "구매버튼 클릭 이벤트 정의", "소비자 신뢰 문항 설계"],
-    decisions: ["구매버튼 클릭은 CTR, CVR과 분리된 핵심 행동지표로 측정한다."],
-    nextAgendas: ["광고 자극물 통제 기준 확정", "설문 문항과 행동 로그 연결 방식 검토"],
+    agendas: ["AI광고 퀄리티에 따른 ROI 변화", "CNN 기반 AI-like probability 산출", "광고 저항도와 클릭의향/구매의도 측정", "인간·캐릭터·제품 데이터셋 100개씩 수집"],
+    decisions: [
+      "논문의 차별성은 AI 광고 거부감을 단순 설문이 아니라 클릭의향, 구매의도, 전환 반응과 연결해 검증하는 것이다.",
+      "CNN 기반 AI-like probability가 높을수록 광고 저항도가 높아지고, 클릭의향과 구매의도는 낮아지는지 검증한다.",
+      "전환확률예측모델 자체보다 AI 인식, 저항도, 클릭/구매의도, ROI 판단 흐름을 중심으로 설계한다.",
+    ],
+    nextAgendas: ["배교수님 컨택 메일", "CNN 구조 탐색 및 학습 방식 정리", "인간/캐릭터/제품 데이터셋 수집 기준 확정", "위험도 3집단별 설문/웹 실험 설계"],
     accomplishments: [
-      { member: "지우진", text: "A/B 테스트 행동지표 정리 초안 작성" },
-      { member: "최서린", text: "생성형 AI 광고 인식과 소비자 신뢰 선행연구 조사" },
-      { member: "최은서", text: "Human/AI 광고 자극물 후보 수집" },
+      { member: "지우진", text: "데일리 워크시트와 논문 진행도/자료 정리함 기반 OS 제작" },
+      { member: "최서린", text: "2주차 선행연구 분석 및 제출용 보고서 담당" },
+      { member: "최은서", text: "2주차 선행연구 분석 및 Notion 회의록 정리 담당" },
     ],
     normalizedMarkdown: "",
   },
@@ -131,20 +184,20 @@ const sampleState = {
   archives: [
     {
       id: "archive-week1",
-      title: "1주차 AIM HUFStudy 주간학습보고서",
+      title: "1차 회의록: AI광고 퀄리티에 따른 ROI 변화",
       type: "주간보고서",
       link: DRIVE_FOLDER_URL,
       summary:
-        "연구문제를 AI-like score가 소비자 신뢰, 행동 반응, ROI 판단에 미치는 영향 검증으로 재정의하고 역할을 분담한 1주차 산출물.",
+        "CNN 기반 AI-like probability, 광고 저항도, 클릭의향, 구매의도, ROI 판단 흐름으로 연구 주제를 구체화한 회의록.",
       createdAt: today,
     },
     {
-      id: "archive-ab-metrics",
-      title: "A/B 테스트 지표 정리 초안",
+      id: "archive-cnn-repo",
+      title: "CNN_AIM GitHub Repository",
       type: "실험설계",
-      link: "",
+      link: "https://github.com/editpanda-dev/CNN_AIM",
       summary:
-        "CTR은 광고 클릭/노출, CVR은 전환/클릭, 구매버튼 클릭은 상세 페이지 CTA 클릭 이벤트로 정의해 행동지표를 측정한다.",
+        "CNN 탐색, 데이터셋 다양화, 인간/캐릭터/제품 광고 이미지 학습을 위한 코드 저장소.",
       createdAt: today,
     },
   ],
@@ -155,10 +208,10 @@ const sampleState = {
       owner: "최서린",
       status: "progress",
       done: false,
-      goal: "생성형 AI 광고 확산과 소비자 신뢰 문제를 연구 배경으로 정리한다.",
-      progress: "문제의식과 연구 필요성 초안 작성 중",
-      next: "AI 광고 인식, 신뢰 하락, 행동 반응을 연결하는 연구문제 문장 다듬기",
-      notes: "프로젝트 전체 방향과 ESG/디지털 취약계층 문제의식을 자연스럽게 연결한다.",
+      goal: "AI 광고 퀄리티와 AI처럼 보이는 정도가 소비자 반응 및 ROI 판단에 미치는 문제를 연구 배경으로 정리한다.",
+      progress: "실제 구매 전환 클릭률/구매의도 기반 검증이라는 차별성 정리 중",
+      next: "설문 중심 선행연구와 달리 행동 반응 및 ROI 판단으로 확장하는 연구 필요성 작성",
+      notes: "논문의 차별성은 AI 광고 거부감 연구를 실제 클릭의향, 구매의도, 전환 반응, ROI 판단과 연결하는 데 있다.",
     },
     {
       id: "paper-lit",
@@ -166,10 +219,10 @@ const sampleState = {
       owner: "최서린",
       status: "todo",
       done: false,
-      goal: "AI 광고 인식, 소비자 신뢰, CTR/CVR 행동지표 관련 문헌을 정리한다.",
-      progress: "관련 논문 후보 수집 단계",
-      next: "핵심 선행연구 3편 이상 요약 후 변수 관계 표로 정리",
-      notes: "AI-like 인식과 신뢰, 구매의향 사이의 연결 근거를 우선 확보한다.",
+      goal: "AI 광고 인식, 광고 저항도, 클릭의향, 구매의도, 산업군 조절효과 관련 문헌을 정리한다.",
+      progress: "서린/은서 2주차 선행연구 분석 페이지 기반으로 인사이트 정리 중",
+      next: "H1~H5 가설과 연결되는 선행연구를 변수별로 배치",
+      notes: "핵심 가설은 AI-like probability가 광고 저항도를 높이고, 저항도가 클릭의향과 구매의도를 낮춘다는 흐름이다.",
     },
     {
       id: "paper-method",
@@ -177,10 +230,10 @@ const sampleState = {
       owner: "지우진",
       status: "progress",
       done: false,
-      goal: "A/B 테스트 설계, 표본 구성, 행동지표 측정 방식을 명확히 정의한다.",
-      progress: "CTR, CVR, 구매버튼 클릭 이벤트 정의 초안 작성",
-      next: "실험 페이지에서 수집할 로그 단위를 아주 작은 이벤트로 쪼개기",
-      notes: "행동지표는 노출, 광고 클릭, 상세 진입, CTA 클릭으로 분리한다.",
+      goal: "CNN 기반 AI-like probability와 위험도 3집단 실험 설계를 정의한다.",
+      progress: "고위험/중위험/저위험 집단별 구글폼 또는 웹 실험 방식 논의 완료",
+      next: "한 세트당 설문 문항 5개, 인간/캐릭터/제품 각 2개 구성 기준 구체화",
+      notes: "시작 시 랜덤 3개 집단에 배정하고 클릭률, 구매전환률 또는 클릭의향/구매의도를 측정한다.",
     },
     {
       id: "paper-stimuli",
@@ -188,10 +241,10 @@ const sampleState = {
       owner: "최은서",
       status: "todo",
       done: false,
-      goal: "Human/AI 광고 이미지 후보와 AI-like risk band 기준을 정리한다.",
-      progress: "조사 기준과 수집 출처 정리 필요",
+      goal: "인간/캐릭터/제품 광고 이미지 데이터셋을 각자 100개씩 수집하고 CNN 학습 기준을 정리한다.",
+      progress: "R&R 확정: 서린 인간, 우진 제품, 은서 캐릭터 데이터셋",
       next: "지우진, 최서린, 최은서가 각자 광고 이미지 100장씩 조사",
-      notes: "같은 상품군, 유사한 정보량, 비슷한 레이아웃 기준으로 후보를 수집한다.",
+      notes: "Gemini, GPT, Claude 등 다양한 생성 데이터셋을 모으되 내용과 형태를 유지한 변형도 고려한다.",
     },
     {
       id: "paper-result",
@@ -199,10 +252,10 @@ const sampleState = {
       owner: "지우진",
       status: "todo",
       done: false,
-      goal: "실험 결과를 CTR, CVR, 구매버튼 클릭 기준으로 비교 분석한다.",
+      goal: "CNN 기반 AI-like probability, 광고 저항도, 클릭의향, 구매의도 간 관계를 분석한다.",
       progress: "실험 설계 확정 후 작성 예정",
-      next: "행동 로그 저장 형식과 분석 테이블 구조 확정",
-      notes: "AI-like score 구간별 차이가 보이는지 확인한다.",
+      next: "위험도 3집단별 클릭의향/구매의도 차이를 비교할 분석표 설계",
+      notes: "고위험군이 실제로 전환 반응 또는 구매의도가 낮아지는지 검증한다.",
     },
     {
       id: "paper-discussion",
@@ -210,32 +263,32 @@ const sampleState = {
       owner: "팀 공통",
       status: "todo",
       done: false,
-      goal: "trust penalty, ROI 판단, 실무적 시사점을 정리한다.",
+      goal: "AI 인식 패널티와 ROI 판단을 연결해 실무적 시사점을 정리한다.",
       progress: "결과 도출 후 작성 예정",
-      next: "연구 한계와 후속 연구 방향 후보 메모",
-      notes: "AI 광고가 항상 유리하다는 주장이 아니라 신뢰 비용을 함께 고려하는 결론으로 잡는다.",
+      next: "AI-like probability가 높을 때 ROI 계산에서 어떤 패널티를 고려해야 하는지 논의",
+      notes: "ROI를 완전히 빼지 않고, 전환확률예측모델 없이도 AI 인식-저항도-전환 반응-ROI 판단 흐름으로 설명한다.",
     },
   ],
   experiments: [
     {
       id: "exp-woojin",
-      title: "지우진 · 광고 이미지 100장 조사",
-      body: "A/B 테스트에 사용할 광고 후보를 수집하고, 클릭·전환 행동지표 측정 가능성을 함께 기록한다.",
+      title: "지우진 · 제품 광고 데이터셋 100개",
+      body: "제품 광고 후보를 수집하고, AI-like probability와 ROI 판단에 연결할 수 있는 산업군/CTA/전환 반응 기준을 기록한다.",
     },
     {
       id: "exp-seorin",
-      title: "최서린 · 광고 이미지 100장 조사",
-      body: "소비자 신뢰와 AI 광고 인식 관점에서 자극물 후보를 검토하고 문헌 근거와 연결한다.",
+      title: "최서린 · 인간 광고 데이터셋 100개",
+      body: "인간 모델 중심 광고 후보를 수집하고, AI 광고 인식 및 광고 저항도 관련 선행연구와 연결한다.",
     },
     {
       id: "exp-eunseo",
-      title: "최은서 · 광고 이미지 100장 조사",
-      body: "Human/AI 광고 후보와 AI-like risk band 기준에 맞춰 이미지 출처와 통제 조건을 정리한다.",
+      title: "최은서 · 캐릭터 광고 데이터셋 100개",
+      body: "캐릭터 광고 후보를 수집하고, Notion 회의록 정리와 함께 데이터셋 출처 및 통제 조건을 관리한다.",
     },
     {
       id: "exp-control",
-      title: "자극물 통제 기준",
-      body: "상품군, 정보량, 레이아웃, CTA 위치가 지나치게 달라지지 않도록 수집 기준을 맞춘다. 세부 내용은 Notion 회의록 정리본을 기준으로 업데이트한다.",
+      title: "위험도 3집단 설계",
+      body: "CNN 출력값을 기준으로 고위험, 중위험, 저위험 집단을 나누고 각 집단별 클릭의향, 구매의도, ROI 판단 차이를 검증한다.",
     },
   ],
 };
@@ -258,20 +311,37 @@ function readLocalState() {
 
 function normalizeState(nextState) {
   const defaults = structuredClone(sampleState);
+  const shouldRefreshDefaults = nextState.defaultRevision !== DEFAULT_REVISION;
   const paperById = new Map(defaults.paperSections.map((section) => [section.id, section]));
-  const paperSections = (nextState.paperSections || defaults.paperSections).map((section) => ({
-    ...(paperById.get(section.id) || {}),
-    ...section,
-  }));
+  const previousPaperById = new Map((nextState.paperSections || []).map((section) => [section.id, section]));
+  const paperSections = shouldRefreshDefaults
+    ? defaults.paperSections.map((section) => {
+        const previous = previousPaperById.get(section.id);
+        return previous ? { ...section, status: previous.status || section.status, done: Boolean(previous.done) } : section;
+      })
+    : (nextState.paperSections || defaults.paperSections).map((section) => ({
+        ...(paperById.get(section.id) || {}),
+        ...section,
+      }));
 
   const hasUpdatedExperimentPlan = (nextState.experiments || []).some((item) => item.id === "exp-woojin");
+  const defaultTaskIds = new Set(defaults.tasks.map((task) => task.id));
+  const customTasks = (nextState.tasks || []).filter((task) => !defaultTaskIds.has(task.id));
+  const defaultCalendarIds = new Set(defaults.calendarItems.map((item) => item.id));
+  const customCalendarItems = (nextState.calendarItems || []).filter((item) => !defaultCalendarIds.has(item.id));
+  const defaultArchiveIds = new Set(defaults.archives.map((item) => item.id));
+  const customArchives = (nextState.archives || []).filter((item) => !defaultArchiveIds.has(item.id));
 
   return {
     ...defaults,
     ...nextState,
-    calendarItems: nextState.calendarItems || defaults.calendarItems,
+    defaultRevision: DEFAULT_REVISION,
+    tasks: shouldRefreshDefaults ? [...defaults.tasks, ...customTasks] : nextState.tasks || defaults.tasks,
+    calendarItems: shouldRefreshDefaults ? [...defaults.calendarItems, ...customCalendarItems] : nextState.calendarItems || defaults.calendarItems,
+    teamAlignment: shouldRefreshDefaults ? defaults.teamAlignment : nextState.teamAlignment || defaults.teamAlignment,
+    archives: shouldRefreshDefaults ? [...defaults.archives, ...customArchives] : nextState.archives || defaults.archives,
     paperSections,
-    experiments: hasUpdatedExperimentPlan ? nextState.experiments : defaults.experiments,
+    experiments: shouldRefreshDefaults || !hasUpdatedExperimentPlan ? defaults.experiments : nextState.experiments,
   };
 }
 
