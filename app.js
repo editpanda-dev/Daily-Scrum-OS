@@ -5,7 +5,7 @@ const PASSCODE_KEY = "aim_research_team_os_passcode";
 const API_ENDPOINT = "/api/state";
 const DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1FcPQHlpGc736etJQKGEEhqWpasH56tun?usp=drive_link";
 const today = formatDateKey(new Date());
-const DEFAULT_REVISION = "2026-07-05-hufstudy-roi-alignment";
+const DEFAULT_REVISION = "2026-07-05-editable-paper-calendar-bars";
 
 const members = ["지우진", "최서린", "최은서", "팀 공통"];
 
@@ -181,26 +181,7 @@ const sampleState = {
       nextAction: "지우진이 지표 정의표 작성 후 팀원 리뷰 요청",
     },
   ],
-  archives: [
-    {
-      id: "archive-week1",
-      title: "1차 회의록: AI광고 퀄리티에 따른 ROI 변화",
-      type: "주간보고서",
-      link: DRIVE_FOLDER_URL,
-      summary:
-        "CNN 기반 AI-like probability, 광고 저항도, 클릭의향, 구매의도, ROI 판단 흐름으로 연구 주제를 구체화한 회의록.",
-      createdAt: today,
-    },
-    {
-      id: "archive-cnn-repo",
-      title: "CNN_AIM GitHub Repository",
-      type: "실험설계",
-      link: "https://github.com/editpanda-dev/CNN_AIM",
-      summary:
-        "CNN 탐색, 데이터셋 다양화, 인간/캐릭터/제품 광고 이미지 학습을 위한 코드 저장소.",
-      createdAt: today,
-    },
-  ],
+  archives: [],
   paperSections: [
     {
       id: "paper-intro",
@@ -329,8 +310,6 @@ function normalizeState(nextState) {
   const customTasks = (nextState.tasks || []).filter((task) => !defaultTaskIds.has(task.id));
   const defaultCalendarIds = new Set(defaults.calendarItems.map((item) => item.id));
   const customCalendarItems = (nextState.calendarItems || []).filter((item) => !defaultCalendarIds.has(item.id));
-  const defaultArchiveIds = new Set(defaults.archives.map((item) => item.id));
-  const customArchives = (nextState.archives || []).filter((item) => !defaultArchiveIds.has(item.id));
 
   return {
     ...defaults,
@@ -339,7 +318,7 @@ function normalizeState(nextState) {
     tasks: shouldRefreshDefaults ? [...defaults.tasks, ...customTasks] : nextState.tasks || defaults.tasks,
     calendarItems: shouldRefreshDefaults ? [...defaults.calendarItems, ...customCalendarItems] : nextState.calendarItems || defaults.calendarItems,
     teamAlignment: shouldRefreshDefaults ? defaults.teamAlignment : nextState.teamAlignment || defaults.teamAlignment,
-    archives: shouldRefreshDefaults ? [...defaults.archives, ...customArchives] : nextState.archives || defaults.archives,
+    archives: shouldRefreshDefaults ? defaults.archives : nextState.archives || defaults.archives,
     paperSections,
     experiments: shouldRefreshDefaults || !hasUpdatedExperimentPlan ? defaults.experiments : nextState.experiments,
   };
@@ -500,6 +479,12 @@ function getDateRange(startDate, endDate) {
 
 function statusLabel(status) {
   return statuses.find(([key]) => key === status)?.[1] || status;
+}
+
+function getCalendarKind(owner, type) {
+  if (type === "회의" || type === "meeting") return "meeting";
+  if (owner === "팀 공통") return "shared";
+  return "personal";
 }
 
 function getMinutesTextarea() {
@@ -1016,6 +1001,7 @@ function getCalendarEvents() {
         title: task.title,
         owner: task.owner,
         type: task.status === "blocked" ? "blocked" : "task",
+        kind: getCalendarKind(task.owner, "task"),
         status: task.status,
         rangeLabel: getTaskRangeLabel(task),
         isStart: date === startDate,
@@ -1028,7 +1014,11 @@ function getCalendarEvents() {
     title: meeting.title,
     owner: "팀 공통",
     type: "meeting",
+    kind: "meeting",
     status: "meeting",
+    rangeLabel: meeting.date,
+    isStart: true,
+    isEnd: true,
   }));
 
   const manualEvents = (state.calendarItems || [])
@@ -1040,6 +1030,7 @@ function getCalendarEvents() {
         title: item.title,
         owner: item.owner,
         type: "schedule",
+        kind: getCalendarKind(item.owner, item.type),
         status: item.type || "일정",
         rangeLabel: getTaskRangeLabel(item),
         isStart: date === startDate,
@@ -1083,9 +1074,10 @@ function renderCalendar() {
           ${dayEvents
             .slice(0, 4)
             .map(
-              (event) => `
-                <div class="calendar-event ${event.type} ${event.isStart ? "range-start" : ""} ${event.isEnd ? "range-end" : ""}">
-                  <span>${
+              (event) => {
+                const isSingleDay = event.isStart && event.isEnd;
+                const shouldShowText = event.isStart || isSingleDay;
+                const label =
                     event.type === "meeting"
                       ? "회의"
                       : event.type === "schedule"
@@ -1095,11 +1087,21 @@ function renderCalendar() {
                           : event.isEnd
                             ? `마감 · ${statusLabel(event.status)}`
                             : `진행 · ${statusLabel(event.status)}`
-                  }</span>
-                  <p>${escapeHtml(event.title)}</p>
-                  <small>${escapeHtml(event.rangeLabel ? `${event.owner} · ${event.rangeLabel}` : event.owner)}</small>
-                </div>
-              `,
+                  ;
+                return `
+                  <div class="calendar-event ${event.type} ${event.kind} ${event.isStart ? "range-start" : "range-mid"} ${event.isEnd ? "range-end" : ""} ${isSingleDay ? "single-day" : ""}">
+                    ${
+                      shouldShowText
+                        ? `
+                          <span>${label}</span>
+                          <p>${escapeHtml(event.title)}</p>
+                          <small>${escapeHtml(event.rangeLabel ? `${event.owner} · ${event.rangeLabel}` : event.owner)}</small>
+                        `
+                        : '<span class="bar-continuation" aria-label="기간 진행"></span>'
+                    }
+                  </div>
+                `;
+              },
             )
             .join("")}
           ${dayEvents.length > 4 ? `<div class="calendar-more">+${dayEvents.length - 4}개 더 있음</div>` : ""}
@@ -1270,45 +1272,56 @@ function renderPaper() {
     .slice(0, 5);
 
   detail.innerHTML = `
-    <div class="paper-detail-head">
-      <div>
-        <span class="badge ${selected.status}">${statusLabel(selected.status)}</span>
-        <h3>${escapeHtml(selected.title)}</h3>
-        <p>${escapeHtml(selected.owner)}</p>
+    <form class="paper-detail-form" id="paperDetailForm" data-paper-id="${escapeHtml(selected.id)}">
+      <div class="paper-detail-head">
+        <div>
+          <span class="badge ${selected.status}">${statusLabel(selected.status)}</span>
+          <h3>${escapeHtml(selected.title)}</h3>
+          <p>${escapeHtml(selected.owner)}</p>
+        </div>
+        <label class="done-toggle">
+          <input name="done" type="checkbox" ${selected.done ? "checked" : ""} />
+          완료
+        </label>
       </div>
-      <label class="done-toggle">
-        <input type="checkbox" data-paper-done="${escapeHtml(selected.id)}" ${selected.done ? "checked" : ""} />
-        완료
-      </label>
-    </div>
-    <div class="paper-detail-grid">
-      <section>
-        <h4>작성 목표</h4>
-        <p>${escapeHtml(selected.goal || "목표를 입력해주세요.")}</p>
-      </section>
-      <section>
-        <h4>진행상황</h4>
-        <p>${escapeHtml(selected.progress || "진행상황을 입력해주세요.")}</p>
-      </section>
-      <section>
-        <h4>다음 액션</h4>
-        <p>${escapeHtml(selected.next || "다음 액션을 정해주세요.")}</p>
-      </section>
-      <section>
-        <h4>메모</h4>
-        <p>${escapeHtml(selected.notes || "관련 메모가 없습니다.")}</p>
-      </section>
-    </div>
-    <div class="paper-detail-actions">
-      <label>
-        상태
-        <select data-paper-status="${escapeHtml(selected.id)}">
-          ${statuses
-            .map(([key, label]) => `<option value="${key}" ${selected.status === key ? "selected" : ""}>${label}</option>`)
-            .join("")}
-        </select>
-      </label>
-    </div>
+      <div class="paper-edit-grid">
+        <label>
+          목차명
+          <input name="title" value="${escapeHtml(selected.title)}" />
+        </label>
+        <label>
+          담당자
+          <select name="owner">
+            ${members.map((member) => `<option value="${escapeHtml(member)}" ${selected.owner === member ? "selected" : ""}>${escapeHtml(member)}</option>`).join("")}
+          </select>
+        </label>
+        <label>
+          상태
+          <select name="status">
+            ${statuses
+              .map(([key, label]) => `<option value="${key}" ${selected.status === key ? "selected" : ""}>${label}</option>`)
+              .join("")}
+          </select>
+        </label>
+        <label>
+          작성 목표
+          <textarea name="goal" rows="3">${escapeHtml(selected.goal || "")}</textarea>
+        </label>
+        <label>
+          진행상황
+          <textarea name="progress" rows="3">${escapeHtml(selected.progress || "")}</textarea>
+        </label>
+        <label>
+          다음 액션
+          <textarea name="next" rows="3">${escapeHtml(selected.next || "")}</textarea>
+        </label>
+        <label class="wide-field">
+          메모
+          <textarea name="notes" rows="4">${escapeHtml(selected.notes || "")}</textarea>
+        </label>
+      </div>
+      <button class="primary-button" type="submit">목차 상세 저장</button>
+    </form>
     <section class="linked-task-list">
       <h4>연결된 업무</h4>
       ${
@@ -1358,7 +1371,7 @@ function renderArchive() {
           `,
         )
         .join("")
-    : '<div class="empty-state">검색 결과가 없습니다.</div>';
+    : '<div class="empty-state">아직 아카이빙한 자료가 없습니다.</div>';
 }
 
 function bindEvents() {
@@ -1547,6 +1560,35 @@ function bindEvents() {
     event.currentTarget.reset();
     saveState();
     render();
+  });
+
+  document.addEventListener("submit", (event) => {
+    if (event.target.id !== "paperDetailForm") return;
+    event.preventDefault();
+    const form = new FormData(event.target);
+    const paperId = event.target.dataset.paperId;
+    const status = String(form.get("status") || "todo");
+    const done = Boolean(form.get("done")) || status === "done";
+
+    state.paperSections = state.paperSections.map((section) =>
+      section.id === paperId
+        ? {
+            ...section,
+            title: String(form.get("title") || section.title).trim(),
+            owner: String(form.get("owner") || section.owner),
+            status: done ? "done" : status,
+            done,
+            goal: String(form.get("goal") || "").trim(),
+            progress: String(form.get("progress") || "").trim(),
+            next: String(form.get("next") || "").trim(),
+            notes: String(form.get("notes") || "").trim(),
+          }
+        : section,
+    );
+
+    saveState();
+    renderPaper();
+    renderMetrics();
   });
 
   document.addEventListener("change", (event) => {
