@@ -1,3 +1,5 @@
+import JSZip from "jszip";
+
 const STORAGE_KEY = "aim_research_team_os_v1";
 const PASSCODE_KEY = "aim_research_team_os_passcode";
 const API_ENDPOINT = "/api/state";
@@ -89,6 +91,22 @@ const sampleState = {
       createdAt: today,
     },
   ],
+  teamAlignment: {
+    currentGoal: "A/B 테스트 설계 완성",
+    theme: "AI-like score가 소비자 신뢰와 행동지표에 미치는 영향 검증",
+    updatedAt: today,
+    sourceFiles: 1,
+    agendas: ["CTR/CVR 측정 방식 정리", "구매버튼 클릭 이벤트 정의", "소비자 신뢰 문항 설계"],
+    decisions: ["구매버튼 클릭은 CTR, CVR과 분리된 핵심 행동지표로 측정한다."],
+    nextAgendas: ["광고 자극물 통제 기준 확정", "설문 문항과 행동 로그 연결 방식 검토"],
+    accomplishments: [
+      { member: "지우진", text: "A/B 테스트 행동지표 정리 초안 작성" },
+      { member: "최서린", text: "생성형 AI 광고 인식과 소비자 신뢰 선행연구 조사" },
+      { member: "최은서", text: "Human/AI 광고 자극물 후보 수집" },
+    ],
+    normalizedMarkdown: "",
+  },
+  notionImports: [],
   validations: [
     {
       id: "validation-1",
@@ -380,6 +398,7 @@ function render() {
   renderDriveLinks();
   renderMemberOptions();
   renderMetrics();
+  renderAlignment();
   renderTimeline();
   renderFutureStack();
   renderCalendar();
@@ -475,6 +494,315 @@ function parseMeetingActions(minutes, meetingTitle) {
         priority: isBlocked ? "high" : "medium",
       };
     });
+}
+
+function stripMarkdownLine(line) {
+  return String(line || "")
+    .replace(/^#{1,6}\s*/, "")
+    .replace(/^[-*+]\s+/, "")
+    .replace(/^\d+\.\s+/, "")
+    .replace(/\*\*/g, "")
+    .replace(/`/g, "")
+    .trim();
+}
+
+function compactLines(text) {
+  return String(text || "")
+    .split(/\r?\n/)
+    .map(stripMarkdownLine)
+    .filter(Boolean);
+}
+
+function uniqueByText(items, limit = 8) {
+  const seen = new Set();
+  const result = [];
+
+  items.forEach((item) => {
+    const text = typeof item === "string" ? item : item?.text || item?.title;
+    const key = String(text || "").replace(/\s+/g, " ").trim();
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    result.push(item);
+  });
+
+  return result.slice(0, limit);
+}
+
+function getDocumentDate(document) {
+  const match = `${document.path} ${document.content}`.match(/\b20\d{2}[-.]\d{1,2}[-.]\d{1,2}\b/);
+  if (!match) return today;
+  return match[0].replace(/\./g, "-").split("-").map((part, index) => (index === 0 ? part : part.padStart(2, "0"))).join("-");
+}
+
+function extractPrefixedLines(lines, prefixes) {
+  return lines
+    .filter((line) => prefixes.some((prefix) => line.toUpperCase().startsWith(`${prefix}:`)))
+    .map((line) => line.replace(/^[A-Z_]+\s*:\s*/i, "").trim());
+}
+
+function extractKeywordLines(lines, keywords, blockedPrefixes = []) {
+  return lines
+    .filter((line) => keywords.some((keyword) => line.includes(keyword)))
+    .filter((line) => !blockedPrefixes.some((prefix) => line.toUpperCase().startsWith(`${prefix}:`)))
+    .map((line) => line.replace(/^(목표|목적|안건|결정사항|다음 아젠다)\s*[:：-]?\s*/, "").trim());
+}
+
+function inferCurrentGoal(lines) {
+  const explicit = lines.find((line) => /^(GOAL|목표|회의 목적|이번 주 목표|현재 목표)\s*[:：-]/i.test(line));
+  if (explicit) return explicit.replace(/^(GOAL|목표|회의 목적|이번 주 목표|현재 목표)\s*[:：-]\s*/i, "").trim();
+
+  const goalLike = lines.find((line) => /(완성|확정|검증|구축|정리|설계|작성).*(목표|목적|방향)/.test(line));
+  if (goalLike) return goalLike;
+
+  const agenda = extractPrefixedLines(lines, ["AGENDA"])[0] || extractKeywordLines(lines, ["안건"])[0];
+  return agenda ? `${agenda} 얼라인` : "이번 주 팀 목표 정렬";
+}
+
+function inferTheme(lines, currentGoal) {
+  const themeLine = lines.find((line) => /^(주제|프로젝트|연구문제|핵심 방향)\s*[:：-]/.test(line));
+  if (themeLine) return themeLine.replace(/^(주제|프로젝트|연구문제|핵심 방향)\s*[:：-]\s*/, "").trim();
+  return currentGoal || "회의록 기반 목표, 안건, R&R 정렬";
+}
+
+function extractAccomplishments(lines) {
+  const doneKeywords = ["완료", "했다", "작성", "정리", "조사", "공유", "준비", "만들", "구현"];
+  const results = [];
+
+  lines.forEach((line) => {
+    const speakerMatch = line.match(/^([^:\s]{2,8})\s*:\s*(.+)$/);
+    if (!speakerMatch) return;
+    const member = normalizeOwner(speakerMatch[1]);
+    if (member === "팀 공통") return;
+    const text = speakerMatch[2].trim();
+    if (!doneKeywords.some((keyword) => text.includes(keyword))) return;
+    if (/해야|할 것|예정|다음|TODO|BLOCKED/.test(text)) return;
+    results.push({ member, text });
+  });
+
+  return uniqueByText(results, 9);
+}
+
+function extractNaturalActionItems(lines, sourceTitle) {
+  const taskVerbs = ["작성", "정리", "조사", "확인", "검토", "준비", "공유", "수집", "만들", "구현", "업데이트", "분석"];
+  const intentWords = ["해야", "하기로", "하겠습니다", "맡", "담당", "까지", "다음"];
+  const tasks = [];
+
+  lines.forEach((line) => {
+    if (/^(TODO|BLOCKED)\s*:/i.test(line)) return;
+    if (!taskVerbs.some((verb) => line.includes(verb))) return;
+    if (!intentWords.some((word) => line.includes(word))) return;
+
+    const speakerMatch = line.match(/^([^:\s]{2,8})\s*:\s*(.+)$/);
+    const owner = normalizeOwner(speakerMatch?.[1]);
+    const body = (speakerMatch?.[2] || line)
+      .replace(/(제가|나는|저는|우선|일단|다음 주까지|이번 주까지|금요일까지|까지는|하겠습니다|해야 합니다|해야 할 것 같아요|하기로 했습니다|하기로 했다)/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!body || body.length < 6) return;
+
+    const dateMatch = line.match(/\b20\d{2}-\d{2}-\d{2}\b/);
+    const dueDate = dateMatch?.[0] || addDays(today, 3);
+
+    tasks.push({
+      id: createId("task"),
+      title: body,
+      owner,
+      status: "todo",
+      startDate: today,
+      dueDate,
+      source: `Notion ZIP: ${sourceTitle}`,
+      priority: "medium",
+    });
+  });
+
+  return uniqueByText(tasks, 12);
+}
+
+function buildNormalizedMarkdown(alignment, tasks, documents) {
+  const accomplishments = alignment.accomplishments.length
+    ? alignment.accomplishments
+        .map((item) => `### ${item.member}\n- ${item.text}`)
+        .join("\n\n")
+    : "- 정리된 개인 성과가 없습니다.";
+
+  return `# 회의록 정리본
+
+## 1. 현재 팀 목표
+- ${alignment.currentGoal}
+
+## 2. 프로젝트 주제 / 방향
+- ${alignment.theme}
+
+## 3. 핵심 아젠다
+${alignment.agendas.map((item) => `- ${item}`).join("\n") || "- 정리된 아젠다가 없습니다."}
+
+## 4. 개인 성과 공유
+${accomplishments}
+
+## 5. 주요 결정사항
+${alignment.decisions.map((item) => `- ${item}`).join("\n") || "- 정리된 결정사항이 없습니다."}
+
+## 6. 다음 아젠다
+${alignment.nextAgendas.map((item) => `- ${item}`).join("\n") || "- 정리된 다음 아젠다가 없습니다."}
+
+## 7. R&R / 액션아이템
+${tasks.map((task) => `- ${task.status === "blocked" ? "BLOCKED" : "TODO"}: @${task.owner} ${getTaskRangeLabel(task)} ${task.title}`).join("\n") || "- 정리된 액션아이템이 없습니다."}
+
+## 8. 분석한 Notion 페이지
+${documents.map((document) => `- ${document.path}`).join("\n")}
+`;
+}
+
+function buildAlignmentFromDocuments(documents, importedTasks) {
+  const lines = compactLines(documents.map((document) => document.content).join("\n"));
+  const currentGoal = inferCurrentGoal(lines);
+  const theme = inferTheme(lines, currentGoal);
+  const agendas = uniqueByText([
+    ...extractPrefixedLines(lines, ["AGENDA"]),
+    ...extractKeywordLines(lines, ["안건"], ["TODO", "BLOCKED", "DECISION"]),
+  ]);
+  const decisions = uniqueByText([
+    ...extractPrefixedLines(lines, ["DECISION"]),
+    ...extractKeywordLines(lines, ["결정", "확정", "하기로 했다", "하기로 했"], ["TODO", "BLOCKED"]),
+  ]);
+  const nextAgendas = uniqueByText([
+    ...extractPrefixedLines(lines, ["NEXT_AGENDA"]),
+    ...extractKeywordLines(lines, ["다음 아젠다", "다음 회의", "다음에 논의"], ["TODO", "BLOCKED"]),
+  ]);
+  const accomplishments = extractAccomplishments(lines);
+
+  const alignment = {
+    currentGoal,
+    theme,
+    updatedAt: today,
+    sourceFiles: documents.length,
+    agendas,
+    decisions,
+    nextAgendas,
+    accomplishments,
+    normalizedMarkdown: "",
+  };
+
+  alignment.normalizedMarkdown = buildNormalizedMarkdown(alignment, importedTasks, documents);
+  return alignment;
+}
+
+async function parseNotionZip(file) {
+  const zip = await JSZip.loadAsync(file);
+  const entries = Object.values(zip.files).filter(
+    (entry) => !entry.dir && /\.(md|markdown|txt)$/i.test(entry.name) && !/__MACOSX\//.test(entry.name),
+  );
+
+  const documents = await Promise.all(
+    entries.map(async (entry) => ({
+      path: entry.name,
+      title: entry.name.split("/").pop().replace(/\.(md|markdown|txt)$/i, ""),
+      content: await entry.async("string"),
+    })),
+  );
+
+  return documents
+    .filter((document) => document.content.trim())
+    .sort((a, b) => getDocumentDate(b).localeCompare(getDocumentDate(a)));
+}
+
+function downloadTextFile(filename, content) {
+  const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function renderListItems(items, emptyText) {
+  return items?.length ? items.map((item) => `<li>${escapeHtml(item)}</li>`).join("") : `<li>${escapeHtml(emptyText)}</li>`;
+}
+
+function renderAlignment() {
+  const board = document.getElementById("alignmentBoard");
+  const importList = document.getElementById("notionImportHistory");
+  if (!board) return;
+
+  const alignment = state.teamAlignment || sampleState.teamAlignment;
+  const activeTasks = state.tasks.filter((task) => task.status !== "done");
+  const unalignedTasks = activeTasks.filter((task) => {
+    const text = `${task.title} ${task.source}`.toLowerCase();
+    return !alignment.agendas?.some((agenda) => text.includes(String(agenda).slice(0, 8).toLowerCase()));
+  });
+
+  board.innerHTML = `
+    <section class="alignment-hero">
+      <span class="badge progress">현재 팀 목표</span>
+      <h2>${escapeHtml(alignment.currentGoal || "팀 목표를 업로드한 회의록에서 추출합니다.")}</h2>
+      <p>${escapeHtml(alignment.theme || "Notion ZIP을 업로드하면 주제, 안건, 결정사항, R&R을 이곳에 정리합니다.")}</p>
+      <div class="meta-row">
+        <span>${escapeHtml(alignment.updatedAt || today)}</span>
+        <span>분석 파일 ${escapeHtml(alignment.sourceFiles || 0)}개</span>
+        <span>진행 업무 ${activeTasks.length}개</span>
+      </div>
+    </section>
+    <section class="alignment-grid">
+      <article class="alignment-card">
+        <h3>핵심 아젠다</h3>
+        <ul>${renderListItems(alignment.agendas, "아젠다를 찾지 못했습니다.")}</ul>
+      </article>
+      <article class="alignment-card">
+        <h3>최근 결정사항</h3>
+        <ul>${renderListItems(alignment.decisions, "결정사항을 찾지 못했습니다.")}</ul>
+      </article>
+      <article class="alignment-card">
+        <h3>다음 아젠다</h3>
+        <ul>${renderListItems(alignment.nextAgendas, "다음 회의 안건을 찾지 못했습니다.")}</ul>
+      </article>
+      <article class="alignment-card">
+        <h3>목표 연결 확인</h3>
+        <p><strong>${unalignedTasks.length}</strong>개 업무는 현재 아젠다와 연결이 약합니다.</p>
+        <p>${unalignedTasks.slice(0, 2).map((task) => escapeHtml(task.title)).join(" / ") || "현재는 모든 업무가 주요 흐름 안에 있습니다."}</p>
+      </article>
+    </section>
+    <section class="alignment-card">
+      <div class="paper-topline">
+        <h3>개인 성과 공유</h3>
+        <span class="badge">${alignment.accomplishments?.length || 0}개</span>
+      </div>
+      <div class="accomplishment-grid">
+        ${
+          alignment.accomplishments?.length
+            ? alignment.accomplishments
+                .map(
+                  (item) => `
+                    <div class="accomplishment-item">
+                      <strong>${escapeHtml(item.member)}</strong>
+                      <p>${escapeHtml(item.text)}</p>
+                    </div>
+                  `,
+                )
+                .join("")
+            : '<div class="empty-state compact">성과 공유 문장을 찾지 못했습니다.</div>'
+        }
+      </div>
+    </section>
+  `;
+
+  if (importList) {
+    importList.innerHTML = (state.notionImports || []).length
+      ? state.notionImports
+          .slice(0, 5)
+          .map(
+            (item) => `
+              <article class="list-item">
+                <span class="badge progress">${escapeHtml(item.createdAt)} · ${escapeHtml(item.fileCount)}개 페이지</span>
+                <h3>${escapeHtml(item.fileName)}</h3>
+                <p>${escapeHtml(item.summary)}</p>
+              </article>
+            `,
+          )
+          .join("")
+      : '<div class="empty-state compact">아직 업로드한 Notion ZIP이 없습니다.</div>';
+  }
 }
 
 function renderTimeline() {
@@ -849,6 +1177,99 @@ function bindEvents() {
   document.getElementById("calendarToday").addEventListener("click", () => {
     calendarCursor = new Date(`${today.slice(0, 7)}-01T00:00:00`);
     renderCalendar();
+  });
+
+  document.getElementById("notionImportBtn").addEventListener("click", async () => {
+    const input = document.getElementById("notionZipInput");
+    const status = document.getElementById("notionImportStatus");
+    const file = input.files?.[0];
+    if (!file) {
+      status.textContent = "먼저 Notion에서 export한 ZIP 파일을 선택해주세요.";
+      return;
+    }
+
+    status.textContent = "ZIP을 읽고 Markdown 페이지를 분석하는 중입니다.";
+
+    try {
+      const documents = await parseNotionZip(file);
+      if (!documents.length) {
+        status.textContent = "ZIP 안에서 Markdown 또는 TXT 파일을 찾지 못했습니다. Notion export 형식을 확인해주세요.";
+        return;
+      }
+
+      const combinedMinutes = documents.map((document) => `# ${document.title}\n${document.content}`).join("\n\n");
+      const explicitTasks = parseMeetingActions(combinedMinutes, file.name).map((task) => ({
+        ...task,
+        source: `Notion ZIP: ${file.name}`,
+      }));
+      const naturalTasks = extractNaturalActionItems(compactLines(combinedMinutes), file.name);
+      const extractedTasks = uniqueByText([...explicitTasks, ...naturalTasks], 30);
+      const alignment = buildAlignmentFromDocuments(documents, extractedTasks);
+      const meetingDate = getDocumentDate(documents[0] || { path: file.name, content: "" });
+
+      state.teamAlignment = alignment;
+      state.notionImports = [
+        {
+          id: createId("notion"),
+          fileName: file.name,
+          fileCount: documents.length,
+          taskCount: extractedTasks.length,
+          summary: `${alignment.currentGoal} · 액션아이템 ${extractedTasks.length}개 추출`,
+          createdAt: today,
+        },
+        ...(state.notionImports || []),
+      ];
+      state.tasks = [...extractedTasks, ...state.tasks];
+      state.meetings = [
+        {
+          id: createId("meeting"),
+          date: meetingDate,
+          title: `Notion ZIP 정리: ${file.name}`,
+          minutes: alignment.normalizedMarkdown,
+          actionsCount: extractedTasks.length,
+          createdAt: today,
+        },
+        ...(state.meetings || []),
+      ];
+      state.archives.unshift({
+        id: createId("archive"),
+        title: `회의록 정리본 - ${file.name}`,
+        type: "회의록",
+        link: "",
+        summary: `${documents.length}개 Notion 페이지를 분석해 목표, 안건, 결정사항, R&R을 정리했습니다.`,
+        createdAt: today,
+      });
+
+      input.value = "";
+      status.textContent = `분석 완료: Markdown ${documents.length}개, 액션아이템 ${extractedTasks.length}개를 대시보드에 반영했습니다.`;
+      saveState();
+      render();
+    } catch (error) {
+      status.textContent = `ZIP 분석 실패: ${error.message || "알 수 없는 오류"}`;
+    }
+  });
+
+  document.getElementById("copyMarkdownBtn").addEventListener("click", async () => {
+    const markdown = state.teamAlignment?.normalizedMarkdown || "";
+    const status = document.getElementById("notionImportStatus");
+    if (!markdown) {
+      status.textContent = "복사할 회의록 정리본이 없습니다. Notion ZIP을 먼저 분석해주세요.";
+      return;
+    }
+
+    await navigator.clipboard.writeText(markdown);
+    status.textContent = "회의록 정리본.md 내용을 클립보드에 복사했습니다.";
+  });
+
+  document.getElementById("downloadMarkdownBtn").addEventListener("click", () => {
+    const markdown = state.teamAlignment?.normalizedMarkdown || "";
+    const status = document.getElementById("notionImportStatus");
+    if (!markdown) {
+      status.textContent = "다운로드할 회의록 정리본이 없습니다. Notion ZIP을 먼저 분석해주세요.";
+      return;
+    }
+
+    downloadTextFile(`meeting-summary-${today}.md`, markdown);
   });
 
   const meetingDateInput = document.querySelector('#meetingForm input[name="date"]');

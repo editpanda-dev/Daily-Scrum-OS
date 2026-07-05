@@ -10,6 +10,9 @@ https://research-team-os.vercel.app
 
 ## 목적
 
+- Notion 회의록 ZIP 업로드와 하위 페이지 Markdown 파싱
+- 산발적인 회의록에서 팀 목표, 핵심 안건, 결정사항, 다음 아젠다, R&R 정리
+- 회의록 정리본 `.md` 자동 생성
 - 데일리 스크럼 기록
 - 태스크 상태와 마감일 관리
 - 팀원별 현재 업무와 다음 업무 가시화
@@ -35,7 +38,26 @@ http://127.0.0.1:5173
 
 ## 저장 방식
 
-기본 화면은 브라우저 `localStorage` fallback으로도 동작합니다. 팀원들이 같은 데이터를 공유하려면 Vercel Serverless API와 Supabase DB를 연결해야 합니다.
+기본 화면은 브라우저 `localStorage` fallback으로도 동작합니다. 팀원들이 같은 데이터를 공유하려면 Vercel Serverless API와 Supabase DB를 연결합니다.
+
+앱의 저장 구조는 단일 Supabase 테이블에 팀 OS 전체 상태를 JSONB로 저장하는 방식입니다. 별도 백엔드 서버 없이 Vercel Serverless Function이 Supabase REST API를 호출합니다.
+
+## Notion ZIP 운영 방식
+
+1. Notion에서 회의록 페이지를 하위 페이지 포함 Markdown/CSV ZIP으로 export합니다.
+2. 앱 첫 화면의 `Notion ZIP 업로드`에 ZIP 파일을 넣고 `ZIP 분석`을 누릅니다.
+3. 앱이 ZIP 안의 `.md`, `.markdown`, `.txt` 파일을 읽어 아래 항목을 추출합니다.
+
+- 현재 팀 목표
+- 프로젝트 주제 / 방향
+- 핵심 아젠다
+- 개인 성과 공유
+- 최근 결정사항
+- 다음 아젠다
+- R&R / 액션아이템
+
+4. 추출된 `TODO`와 `BLOCKED`는 태스크 보드와 캘린더에 자동 반영됩니다.
+5. `정리본 복사` 또는 `정리본.md 다운로드`로 회의록 정리본을 보관할 수 있습니다.
 
 ## Supabase 설정
 
@@ -54,6 +76,17 @@ TEAM_OS_PASSCODE=팀원들이 공유할 패스코드
 ```
 
 환경변수 추가 후 Vercel에서 재배포하면 상단의 `팀 DB 동기화` 버튼으로 공유 DB에 연결됩니다.
+
+CLI로 등록할 경우:
+
+```bash
+npx vercel env add SUPABASE_URL production
+npx vercel env add SUPABASE_SERVICE_ROLE_KEY production
+npx vercel env add TEAM_OS_PASSCODE production
+npx vercel --prod
+```
+
+현재 코드에는 Supabase 연결 로직이 포함되어 있습니다. 다만 Vercel 프로젝트에 위 환경변수가 없으면 자동으로 로컬 모드로 동작합니다.
 
 ## Google Drive 자료 운영
 

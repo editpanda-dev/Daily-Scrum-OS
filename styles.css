@@ -346,6 +346,104 @@ label {
   grid-template-columns: minmax(240px, 1.4fr) 120px 100px 130px 130px minmax(160px, 1fr) 110px;
 }
 
+.notion-import-panel {
+  margin-bottom: 18px;
+}
+
+.notion-import-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto auto auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+
+.notion-import-grid button {
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.alignment-hero {
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #f8fbff;
+  padding: 18px;
+}
+
+.alignment-hero h2 {
+  margin: 10px 0 8px;
+  font-size: 24px;
+  line-height: 1.35;
+}
+
+.alignment-hero p {
+  margin-bottom: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.alignment-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.alignment-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfd;
+  padding: 14px;
+}
+
+.alignment-card h3 {
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.alignment-card ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.alignment-card p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.accomplishment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.accomplishment-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  padding: 12px;
+}
+
+.accomplishment-item strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.accomplishment-item p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
 .quick-task-form input,
 .quick-task-form select,
 .inline-form input,
@@ -810,6 +908,15 @@ code {
     grid-template-columns: 1fr;
   }
 
+  .alignment-grid,
+  .accomplishment-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .notion-import-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .future-stack {
     grid-template-columns: 1fr;
   }
@@ -833,6 +940,9 @@ code {
   .summary-grid,
   .form-grid,
   .quick-task-form,
+  .notion-import-grid,
+  .alignment-grid,
+  .accomplishment-grid,
   .builder-row,
   .speaker-row {
     grid-template-columns: 1fr;
