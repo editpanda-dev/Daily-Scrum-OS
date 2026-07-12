@@ -122,8 +122,9 @@ module.exports = async function handler(request, response) {
   }
 
   const config = getSupabaseConfig();
-  const useBlob = hasBlobConfig();
-  if (!config && !useBlob) {
+  const useSupabase = Boolean(config);
+  const useBlob = !useSupabase && hasBlobConfig();
+  if (!useSupabase && !useBlob) {
     sendJson(response, 501, {
       error: "Server storage is not configured",
       requiredEnv: ["BLOB_READ_WRITE_TOKEN", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
@@ -133,11 +134,11 @@ module.exports = async function handler(request, response) {
 
   try {
     if (request.method === "GET") {
-      const row = useBlob ? await readBlobState() : await readState(config);
+      const row = useSupabase ? await readState(config) : await readBlobState();
       sendJson(response, 200, {
         payload: row?.payload || null,
         updatedAt: row?.updated_at || row?.updatedAt || null,
-        storage: useBlob ? "vercel-blob" : "supabase",
+        storage: useSupabase ? "supabase" : "vercel-blob",
       });
       return;
     }
@@ -149,11 +150,11 @@ module.exports = async function handler(request, response) {
         return;
       }
 
-      const row = useBlob ? await writeBlobState(body.payload) : await writeState(config, body.payload);
+      const row = useSupabase ? await writeState(config, body.payload) : await writeBlobState(body.payload);
       sendJson(response, 200, {
         payload: row?.payload || body.payload,
         updatedAt: row?.updated_at || new Date().toISOString(),
-        storage: useBlob ? "vercel-blob" : "supabase",
+        storage: useSupabase ? "supabase" : "vercel-blob",
       });
       return;
     }
